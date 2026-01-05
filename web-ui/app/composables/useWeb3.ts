@@ -1,10 +1,14 @@
 import { ethers } from 'ethers';
+import { useToast } from 'primevue/usetoast';
 
 export const useWeb3 = () => {
     const account = useState<string | null>('web3_account', () => null);
     const isConnected = useState<boolean>('web3_isConnected', () => false);
     const provider = useState<ethers.BrowserProvider | null>('web3_provider', () => null);
     const signer = useState<ethers.JsonRpcSigner | null>('web3_signer', () => null);
+
+    const router = useRouter();
+    const toast = useToast();
 
     const connectWallet = async () => {
         if (process.client && (window as any).ethereum) {
@@ -19,6 +23,8 @@ export const useWeb3 = () => {
                     signer.value = _signer;
                     account.value = accounts[0];
                     isConnected.value = true;
+                    router.push('/dashboard');
+                    toast.add({ severity: 'success', summary: 'Connected', detail: 'Wallet connected successfully!', life: 3000 });
 
                     // Setup listeners
                     (window as any).ethereum.on('accountsChanged', handleAccountsChanged);
@@ -26,9 +32,19 @@ export const useWeb3 = () => {
                 }
             } catch (error) {
                 console.error("User denied account access or error occurred:", error);
+                toast.add({ severity: 'error', summary: 'Connection Failed', detail: 'User denied account access.', life: 3000 });
             }
         } else {
             console.warn("MetaMask not installed or not in client environment");
+            toast.add({ 
+                severity: 'warn', 
+                summary: 'Wallet Missing', 
+                detail: 'Chưa tìm thấy ví MetaMask! Hệ thống sẽ chuyển bạn đến trang cài đặt trong 4 giây...', 
+                life: 5000 
+            });
+            setTimeout(() => {
+                 window.open("https://metamask.io/download/", "_blank");
+            }, 4000);
         }
     };
 
@@ -42,6 +58,7 @@ export const useWeb3 = () => {
             if (provider.value) {
                 const _signer = await provider.value.getSigner();
                 signer.value = _signer;
+                router.push('/dashboard');
             }
         }
     };
@@ -56,6 +73,8 @@ export const useWeb3 = () => {
         isConnected.value = false;
         provider.value = null;
         signer.value = null;
+        router.push('/');
+        toast.add({ severity: 'info', summary: 'Disconnected', detail: 'Wallet disconnected.', life: 3000 });
 
         // Remove listeners if possible, but cleanup might be tricky with anonymous functions or global objects
         // window.ethereum.removeListener works if we pass the same function reference
