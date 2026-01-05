@@ -1,0 +1,16 @@
+{
+    "name": "lending-dapp-blockchain",
+    "version": "1.0.0",
+    "description": "Smart contracts for Lending DApp",
+    "scripts": {
+        "test": "hardhat test",
+        "deploy": "hardhat run scripts/deploy.js"
+    },
+    "devDependencies": {
+        "hardhat": "^2.22.0",
+        "@nomicfoundation/hardhat-toolbox": "^5.0.0"
+    },
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.9.0"
+    }
+}
