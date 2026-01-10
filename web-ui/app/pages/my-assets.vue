@@ -57,45 +57,45 @@ const handleRepay = (asset: any) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-900 text-white font-sans flex">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-sans flex">
     <Sidebar />
     
     <main class="flex-grow p-8 overflow-y-auto">
-      <h1 class="text-3xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent mb-8">
+      <h1 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent mb-8">
         My Assets
       </h1>
       
       <div v-if="!isConnected" class="flex flex-col items-center justify-center h-[50vh] text-center">
-          <Icon icon="mdi:wallet-off" class="w-16 h-16 text-gray-600 mb-4" />
-          <h2 class="text-2xl font-bold text-gray-400 mb-2">Wallet Not Connected</h2>
+          <Icon icon="mdi:wallet-off" class="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
+          <h2 class="text-2xl font-bold text-gray-600 dark:text-gray-400 mb-2">Wallet Not Connected</h2>
           <p class="text-gray-500">Please connect your wallet to view your assets.</p>
       </div>
 
       <div v-else>
-         <!-- Top Stats -->
-         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-             <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 relative overflow-hidden">
-                 <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-2xl"></div>
-                 <p class="text-gray-400 text-sm mb-2">Total Supplied Value</p>
-                 <p class="text-3xl font-bold text-green-400">${{ totalSupplied }}</p>
-             </div>
-             <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 relative overflow-hidden">
-                 <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-500/10 rounded-full blur-2xl"></div>
-                 <p class="text-gray-400 text-sm mb-2">Total Borrowed Value</p>
-                 <p class="text-3xl font-bold text-red-400">${{ totalBorrowed }}</p>
-             </div>
-         </div>
+          <!-- Top Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 relative overflow-hidden shadow-sm dark:shadow-none">
+                  <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-100 dark:bg-green-500/10 rounded-full blur-2xl"></div>
+                  <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">Total Supplied Value</p>
+                  <p class="text-3xl font-bold text-green-500 dark:text-green-400">${{ totalSupplied }}</p>
+              </div>
+              <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 relative overflow-hidden shadow-sm dark:shadow-none">
+                  <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-100 dark:bg-red-500/10 rounded-full blur-2xl"></div>
+                  <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">Total Borrowed Value</p>
+                  <p class="text-3xl font-bold text-red-500 dark:text-red-400">${{ totalBorrowed }}</p>
+              </div>
+          </div>
 
-         <!-- Health Factor -->
-         <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700 mb-8">
-             <div class="flex justify-between items-center mb-2">
-                 <span class="text-gray-400 font-bold flex items-center gap-2">
-                     <Icon icon="mdi:heart-pulse" class="text-red-400" />
-                     Health Factor
-                 </span>
-                 <span :class="healthFactor >= 1.5 ? 'text-green-400' : 'text-yellow-400'" class="font-bold text-xl">{{ healthFactor }}</span>
-             </div>
-             <div class="h-3 bg-gray-700 rounded-full overflow-hidden">
+          <!-- Health Factor -->
+          <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 mb-8 shadow-sm dark:shadow-none">
+              <div class="flex justify-between items-center mb-2">
+                  <span class="text-gray-500 dark:text-gray-400 font-bold flex items-center gap-2">
+                      <Icon icon="mdi:heart-pulse" class="text-red-500 dark:text-red-400" />
+                      Health Factor
+                  </span>
+                  <span :class="healthFactor >= 1.5 ? 'text-green-500 dark:text-green-400' : 'text-yellow-500 dark:text-yellow-400'" class="font-bold text-xl">{{ healthFactor }}</span>
+              </div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                  <div 
                     class="h-full transition-all duration-500 rounded-full relative"
                     :class="healthColor"
@@ -109,91 +109,81 @@ const handleRepay = (asset: any) => {
              </p>
          </div>
 
-         <!-- Empty State -->
-         <div v-if="isEmpty" class="flex flex-col items-center justify-center p-12 bg-gray-800/50 rounded-2xl border border-gray-700/50 border-dashed text-center">
-             <Icon icon="mdi:package-variant-closed" class="w-16 h-16 text-gray-600 mb-4" />
-             <h3 class="text-xl font-bold text-gray-300 mb-2">No Assets Found</h3>
-             <p class="text-gray-500 mb-6">You haven't supplied or borrowed any assets yet.</p>
-             <NuxtLink to="/market" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                 Go to Market
-             </NuxtLink>
+          <!-- Empty State -->
+          <div v-if="isEmpty" class="flex flex-col items-center justify-center p-12 bg-white/50 dark:bg-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 border-dashed text-center">
+              <Icon icon="mdi:package-variant-closed" class="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
+              <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">No Assets Found</h3>
+              <p class="text-gray-500 mb-6">You haven't supplied or borrowed any assets yet.</p>
+              <p class="text-gray-500 mb-6">You haven't supplied or borrowed any assets yet.</p>
+             <Button label="Go to Market" icon="pi pi-arrow-right" iconPos="right" @click="navigateTo('/market')" class="!bg-blue-600 hover:!bg-blue-700 !border-none" />
          </div>
 
          <div v-else class="space-y-8">
-             <!-- Supplies Table -->
-             <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-                <div class="p-6 border-b border-gray-700 flex items-center gap-2">
-                    <Icon icon="mdi:arrow-up-circle" class="text-green-400 w-6 h-6" />
-                    <h3 class="text-xl font-bold">Your Supplies</h3>
+              <!-- Supplies Table -->
+              <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm dark:shadow-none">
+                 <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                     <Icon icon="mdi:arrow-up-circle" class="text-green-500 dark:text-green-400 w-6 h-6" />
+                     <h3 class="text-xl font-bold text-gray-900 dark:text-white">Your Supplies</h3>
+                 </div>
+                 <div class="overflow-x-auto">
+                     <DataTable :value="supplies" :rowClass="() => 'hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors'">
+                        <Column header="Asset">
+                            <template #body="slotProps">
+                                <div class="flex items-center gap-3">
+                                    <Icon :icon="slotProps.data.icon" class="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                                    <span class="font-bold text-gray-900 dark:text-white">{{ slotProps.data.symbol }}</span>
+                                </div>
+                            </template>
+                        </Column>
+                        <Column field="balance" header="Balance" class="font-mono text-gray-600 dark:text-gray-300"></Column>
+                        <Column field="apy" header="APY" class="text-green-500 dark:text-green-400"></Column>
+                        <Column header="Collateral">
+                            <template #body="slotProps">
+                                <span v-if="slotProps.data.isCollateral" class="text-green-600 dark:text-green-400 text-xs border border-green-200 dark:border-green-500/30 bg-green-100 dark:bg-green-500/10 px-2 py-1 rounded">Enabled</span>
+                                <span v-else class="text-gray-500 text-xs">Disabled</span>
+                            </template>
+                        </Column>
+                        <Column header="Action">
+                            <template #body="slotProps">
+                                <Button label="Withdraw" size="small" severity="info" outlined 
+                                    class="!text-blue-600 dark:!text-blue-400 hover:!text-white hover:!bg-blue-600 !border-blue-200 dark:!border-blue-500/30 transition-colors"
+                                    @click="handleWithdraw(slotProps.data)"
+                                />
+                            </template>
+                        </Column>
+                     </DataTable>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-900/50 text-gray-400 text-sm uppercase">
-                            <tr>
-                                <th class="p-4">Asset</th>
-                                <th class="p-4">Balance</th>
-                                <th class="p-4">APY</th>
-                                <th class="p-4">Collateral</th>
-                                <th class="p-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-700">
-                            <tr v-for="asset in supplies" :key="asset.symbol" class="hover:bg-gray-700/30 transition-colors">
-                                <td class="p-4 flex items-center gap-3">
-                                    <Icon :icon="asset.icon" class="w-8 h-8 text-blue-400" />
-                                    <span class="font-bold">{{ asset.symbol }}</span>
-                                </td>
-                                <td class="p-4 font-mono">{{ asset.balance }}</td>
-                                <td class="p-4 text-green-400">{{ asset.apy }}</td>
-                                <td class="p-4">
-                                    <span v-if="asset.isCollateral" class="text-green-400 text-xs border border-green-500/30 bg-green-500/10 px-2 py-1 rounded">Enabled</span>
-                                    <span v-else class="text-gray-500 text-xs">Disabled</span>
-                                </td>
-                                <td class="p-4">
-                                    <button @click="handleWithdraw(asset)" class="text-blue-400 hover:text-white hover:bg-blue-600 px-3 py-1 rounded transition-colors text-sm border border-blue-500/30">
-                                        Withdraw
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-             </div>
+              </div>
 
-             <!-- Borrows Table -->
-             <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-                <div class="p-6 border-b border-gray-700 flex items-center gap-2">
-                    <Icon icon="mdi:arrow-down-circle" class="text-red-400 w-6 h-6" />
-                    <h3 class="text-xl font-bold">Your Borrows</h3>
+              <!-- Borrows Table -->
+              <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm dark:shadow-none">
+                 <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                     <Icon icon="mdi:arrow-down-circle" class="text-red-500 dark:text-red-400 w-6 h-6" />
+                     <h3 class="text-xl font-bold text-gray-900 dark:text-white">Your Borrows</h3>
+                 </div>
+                 <div class="overflow-x-auto">
+                     <DataTable :value="borrows" :rowClass="() => 'hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors'">
+                        <Column header="Asset">
+                            <template #body="slotProps">
+                                <div class="flex items-center gap-3">
+                                    <Icon :icon="slotProps.data.icon" class="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                                    <span class="font-bold text-gray-900 dark:text-white">{{ slotProps.data.symbol }}</span>
+                                </div>
+                            </template>
+                        </Column>
+                        <Column field="debt" header="Debt" class="font-mono text-gray-600 dark:text-gray-300"></Column>
+                        <Column field="apy" header="APY" class="text-purple-500 dark:text-purple-400"></Column>
+                        <Column header="Action">
+                            <template #body="slotProps">
+                                <Button label="Repay" size="small" severity="help" outlined 
+                                    class="!text-purple-600 dark:!text-purple-400 hover:!text-white hover:!bg-purple-600 !border-purple-200 dark:!border-purple-500/30 transition-colors"
+                                    @click="handleRepay(slotProps.data)"
+                                />
+                            </template>
+                        </Column>
+                     </DataTable>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-900/50 text-gray-400 text-sm uppercase">
-                            <tr>
-                                <th class="p-4">Asset</th>
-                                <th class="p-4">Debt</th>
-                                <th class="p-4">APY</th>
-                                <th class="p-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-700">
-                            <tr v-for="asset in borrows" :key="asset.symbol" class="hover:bg-gray-700/30 transition-colors">
-                                <td class="p-4 flex items-center gap-3">
-                                    <Icon :icon="asset.icon" class="w-8 h-8 text-purple-400" />
-                                    <span class="font-bold">{{ asset.symbol }}</span>
-                                </td>
-                                <td class="p-4 font-mono">{{ asset.debt }}</td>
-                                <td class="p-4 text-purple-400">{{ asset.apy }}</td>
-                                <td class="p-4">
-                                    <button @click="handleRepay(asset)" class="text-purple-400 hover:text-white hover:bg-purple-600 px-3 py-1 rounded transition-colors text-sm border border-purple-500/30">
-                                        Repay
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-             </div>
+              </div>
          </div>
       </div>
     </main>

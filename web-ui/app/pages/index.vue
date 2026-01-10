@@ -12,7 +12,7 @@ const handleConnect = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-900 text-white font-sans flex flex-col">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-sans flex flex-col">
     <!-- Header -->
     <Header />
 
@@ -24,7 +24,7 @@ const handleConnect = async () => {
         <h1 class="py-4 text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">
           Lending dApp: Future of Finance
         </h1>
-        <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+        <p class="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
           Experience the next generation of decentralized lending, instant borrowing, and high-yield savings.
         </p>
         <button 
@@ -38,30 +38,30 @@ const handleConnect = async () => {
       <!-- Features Cards -->
       <div class="grid md:grid-cols-3 gap-8 w-full max-w-6xl">
         <!-- Card 1 -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 hover:border-blue-500 transition-all duration-300 hover:-translate-y-2 fade-up" style="animation-delay: 0.3s;">
+        <div class="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 transition-all duration-300 hover:-translate-y-2 fade-up" style="animation-delay: 0.3s;">
           <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 text-blue-400">
              <Icon icon="fluent:money-hand-24-filled" class="w-10 h-10" />
           </div>
-          <h3 class="text-2xl font-bold mb-3 text-gray-100">Tiết kiệm với APY cao</h3>
-          <p class="text-gray-400">Earn industry-leading interest rates on your crypto assets with our optimized lending pools.</p>
+          <h3 class="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">Tiết kiệm với APY cao</h3>
+          <p class="text-gray-600 dark:text-gray-400">Earn industry-leading interest rates on your crypto assets with our optimized lending pools.</p>
         </div>
 
         <!-- Card 2 -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 hover:border-purple-500 transition-all duration-300 hover:-translate-y-2 fade-up" style="animation-delay: 0.5s;">
+        <div class="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-purple-500 transition-all duration-300 hover:-translate-y-2 fade-up" style="animation-delay: 0.5s;">
           <div class="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6 text-purple-400">
              <Icon icon="mdi:paper-remove" class="w-10 h-10" />
           </div>
-          <h3 class="text-2xl font-bold mb-3 text-gray-100">Vay không cần giấy tờ</h3>
-          <p class="text-gray-400">Instant approval. No credit checks. Use your crypto as collateral and access liquidity instantly.</p>
+          <h3 class="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">Vay không cần giấy tờ</h3>
+          <p class="text-gray-600 dark:text-gray-400">Instant approval. No credit checks. Use your crypto as collateral and access liquidity instantly.</p>
         </div>
 
         <!-- Card 3 -->
-        <div class="bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-700 hover:border-green-500 transition-all duration-300 hover:-translate-y-2 fade-up" style="animation-delay: 0.7s;">
+        <div class="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-8 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-green-500 transition-all duration-300 hover:-translate-y-2 fade-up" style="animation-delay: 0.7s;">
           <div class="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6 text-green-400">
              <Icon icon="mdi:shield-check" class="w-10 h-10" />
           </div>
-          <h3 class="text-2xl font-bold mb-3 text-gray-100">An toàn tuyệt đối</h3>
-          <p class="text-gray-400">Audited smart contracts and non-custodial architecture ensure your funds are always secure.</p>
+          <h3 class="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">An toàn tuyệt đối</h3>
+          <p class="text-gray-600 dark:text-gray-400">Audited smart contracts and non-custodial architecture ensure your funds are always secure.</p>
         </div>
       </div>
 

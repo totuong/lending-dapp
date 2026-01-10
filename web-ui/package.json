@@ -13,6 +13,7 @@
     "@iconify/vue": "^5.0.0",
     "@primevue/nuxt-module": "^4.5.4",
     "@primevue/themes": "^4.5.4",
+    "chart.js": "^4.5.1",
     "ethers": "^6.16.0",
     "nuxt": "^4.2.2",
     "primevue": "^4.5.4",

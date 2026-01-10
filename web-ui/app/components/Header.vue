@@ -10,8 +10,8 @@ const handleConnect = async () => {
 </script>
 
 <template>
-  <header class="flex justify-between items-center p-6 border-b border-gray-700 bg-gray-800 z-10 hidden md:flex">
-    <div class="text-2xl font-bold text-blue-400 flex items-center gap-2">
+  <header class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-10 hidden md:flex">
+    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
       <Icon icon="mdi:bank" class="w-8 h-8" />
       Lending DApp
     </div>
@@ -25,7 +25,7 @@ const handleConnect = async () => {
         Connect Wallet
       </button>
       <div v-else class="flex items-center gap-4">
-        <span class="text-gray-300 text-sm bg-gray-700 px-3 py-1 rounded-full">
+        <span class="text-gray-600 dark:text-gray-300 text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
           {{ account?.slice(0, 6) }}...{{ account?.slice(-4) }}
         </span>
         <button 
@@ -38,8 +38,8 @@ const handleConnect = async () => {
     </div>
   </header>
   <!-- Mobile Header (Simplified for now, can be expanded) -->
-  <header class="flex md:hidden justify-between items-center p-4 border-b border-gray-700 bg-gray-800 z-10">
-      <div class="text-xl font-bold text-blue-400 flex items-center gap-2">
+  <header class="flex md:hidden justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-10">
+      <div class="text-xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
         <Icon icon="mdi:bank" class="w-6 h-6" />
         Lending
       </div>
@@ -53,7 +53,7 @@ const handleConnect = async () => {
           Connect
         </button>
         <div v-else class="flex items-center gap-2">
-           <span class="text-gray-300 text-xs bg-gray-700 px-2 py-1 rounded-full">
+           <span class="text-gray-600 dark:text-gray-300 text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
             {{ account?.slice(0, 4) }}...{{ account?.slice(-4) }}
           </span>
            <button 

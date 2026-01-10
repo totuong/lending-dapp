@@ -18,6 +18,27 @@ const isDataLoading = ref(true);
 // Mock Health Factor (1.0 - 2.0 range)
 const healthFactor = ref(1.8);
 
+const marketData = ref([
+  {
+    name: 'Ethereum',
+    icon: 'mdi:ethereum',
+    color: 'text-blue-600 dark:text-blue-400',
+    totalSupply: '$10.2M',
+    supplyAPY: '2.5%',
+    totalBorrowed: '$4.1M',
+    borrowAPY: '3.8%'
+  },
+  {
+    name: 'USDT',
+    icon: 'mdi:circle-multiple-outline',
+    color: 'text-purple-600 dark:text-purple-400',
+    totalSupply: '$50.5M',
+    supplyAPY: '4.2%',
+    totalBorrowed: '$35.2M',
+    borrowAPY: '5.5%'
+  }
+]);
+
 const fetchBalance = async () => {
   isDataLoading.value = true;
   if (isConnected.value) {
@@ -71,7 +92,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-900 text-white font-sans flex">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-sans flex">
     
     <!-- Sidebar -->
     <Sidebar />
@@ -84,45 +105,45 @@ onMounted(() => {
 
       <!-- Quick Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-         <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
-            <p class="text-gray-400 text-sm mb-1">Net Worth</p>
-            <div v-if="isDataLoading" class="h-8 w-32 bg-gray-700 rounded animate-pulse"></div>
-            <p v-else class="text-3xl font-bold text-white">$4,250.00</p>
+         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
+             <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Net Worth</p>
+            <div v-if="isDataLoading" class="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <p v-else class="text-3xl font-bold text-gray-900 dark:text-white">$4,250.00</p>
          </div>
-         <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
-            <p class="text-gray-400 text-sm mb-1">Total Supply</p>
-             <div v-if="isDataLoading" class="h-8 w-32 bg-gray-700 rounded animate-pulse"></div>
-            <p v-else class="text-3xl font-bold text-green-400">$3,000.00</p>
+         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Total Supply</p>
+             <div v-if="isDataLoading" class="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <p v-else class="text-3xl font-bold text-green-500 dark:text-green-400">$3,000.00</p>
          </div>
-         <div class="bg-gray-800 p-6 rounded-2xl border border-gray-700">
-            <p class="text-gray-400 text-sm mb-1">Total Borrow</p>
-             <div v-if="isDataLoading" class="h-8 w-32 bg-gray-700 rounded animate-pulse"></div>
-            <p v-else class="text-3xl font-bold text-purple-400">$1,250.00</p>
+         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Total Borrow</p>
+             <div v-if="isDataLoading" class="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <p v-else class="text-3xl font-bold text-purple-500 dark:text-purple-400">$1,250.00</p>
          </div>
       </div>
 
       <!-- Main Actions Area -->
       <div class="grid lg:grid-cols-2 gap-8 mb-8">
           <!-- Supply Section -->
-          <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-             <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-               <Icon icon="mdi:bank-transfer-in" class="text-green-400" />
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
+             <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+               <Icon icon="mdi:bank-transfer-in" class="text-green-500 dark:text-green-400" />
                Supply Assets
              </h3>
-             <div class="bg-gray-900 rounded-xl p-4 mb-4">
+             <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 mb-4 border border-gray-100 dark:border-gray-800">
                <div class="flex justify-between mb-2">
-                 <span class="text-gray-400">Asset</span>
-                 <span class="text-gray-400">Balance</span>
+                 <span class="text-gray-500 dark:text-gray-400">Asset</span>
+                 <span class="text-gray-500 dark:text-gray-400">Balance</span>
                </div>
                <div class="flex justify-between items-center">
                  <div class="flex items-center gap-2">
-                   <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                   <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
                      <Icon icon="mdi:ethereum" />
                    </div>
-                   <span class="font-bold">ETH</span>
+                   <span class="font-bold text-gray-900 dark:text-white">ETH</span>
                  </div>
-                 <div v-if="isDataLoading" class="h-6 w-20 bg-gray-700 rounded animate-pulse"></div>
-                 <span v-else class="font-mono">{{ userBalance }}</span>
+                 <div v-if="isDataLoading" class="h-6 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                 <span v-else class="font-mono text-gray-900 dark:text-white">{{ userBalance }}</span>
                </div>
              </div>
              
@@ -135,7 +156,7 @@ onMounted(() => {
                     :maxFractionDigits="18"
                     fluid
                     class="w-full"
-                    inputClass="w-full bg-gray-900 border border-gray-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-green-500 transition-colors"
+                    inputClass="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg py-3 px-4 text-gray-900 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
                   />
                   <div class="absolute right-3 top-3 z-10">
                      <Button label="MAX" size="small" severity="secondary" text class="!text-xs !bg-gray-700 !text-gray-300 hover:!bg-gray-600" />
@@ -153,24 +174,24 @@ onMounted(() => {
           </div>
 
           <!-- Borrow Section -->
-          <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-             <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-               <Icon icon="mdi:hand-coin" class="text-purple-400" />
+          <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
+             <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+               <Icon icon="mdi:hand-coin" class="text-purple-500 dark:text-purple-400" />
                Borrow Assets
              </h3>
-             <div class="bg-gray-900 rounded-xl p-4 mb-4">
+             <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 mb-4 border border-gray-100 dark:border-gray-800">
                <div class="flex justify-between mb-2">
-                 <span class="text-gray-400">Asset</span>
-                 <span class="text-gray-400">APY / Rate</span>
+                 <span class="text-gray-500 dark:text-gray-400">Asset</span>
+                 <span class="text-gray-500 dark:text-gray-400">APY / Rate</span>
                </div>
                <div class="flex justify-between items-center">
                  <div class="flex items-center gap-2">
-                   <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
+                   <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
                      <Icon icon="mdi:cash" />
                    </div>
-                   <span class="font-bold">USDT</span>
+                   <span class="font-bold text-gray-900 dark:text-white">USDT</span>
                  </div>
-                 <span class="text-purple-400 font-bold">3.5%</span>
+                 <span class="text-purple-500 dark:text-purple-400 font-bold">3.5%</span>
                </div>
              </div>
 
@@ -182,7 +203,7 @@ onMounted(() => {
                     :minFractionDigits="2"
                     fluid 
                     class="w-full"
-                    inputClass="w-full bg-gray-900 border border-gray-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-purple-500 transition-colors"
+                    inputClass="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg py-3 px-4 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors"
                   />
                   <span class="absolute right-4 top-3 text-gray-500">TOK</span>
              </div>
@@ -199,66 +220,34 @@ onMounted(() => {
       </div>
       
       <!-- Markets Table -->
-      <div class="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
-        <div class="p-6 border-b border-gray-700">
-           <h3 class="text-xl font-bold">Market Overview</h3>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm dark:shadow-none">
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+           <h3 class="text-xl font-bold text-gray-900 dark:text-white">Market Overview</h3>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-left">
-             <thead class="bg-gray-900/50 text-gray-400 text-sm uppercase">
-               <tr>
-                 <th class="p-4">Asset</th>
-                 <th class="p-4">Total Supplied</th>
-                 <th class="p-4">Supply APY</th>
-                 <th class="p-4">Total Borrowed</th>
-                 <th class="p-4">Borrow APY</th>
-                 <th class="p-4">Action</th>
-               </tr>
-             </thead>
-             <tbody class="divide-y divide-gray-700">
-               <!-- Skeleton Rows -->
-               <template v-if="isDataLoading">
-                  <tr v-for="i in 3" :key="i" class="animate-pulse">
-                    <td class="p-4"><div class="h-6 w-24 bg-gray-700 rounded"></div></td>
-                    <td class="p-4"><div class="h-6 w-16 bg-gray-700 rounded"></div></td>
-                    <td class="p-4"><div class="h-6 w-12 bg-gray-700 rounded"></div></td>
-                    <td class="p-4"><div class="h-6 w-16 bg-gray-700 rounded"></div></td>
-                    <td class="p-4"><div class="h-6 w-12 bg-gray-700 rounded"></div></td>
-                    <td class="p-4"><div class="h-8 w-20 bg-gray-700 rounded"></div></td>
-                  </tr>
-               </template>
-
-               <!-- Data Rows -->
-               <template v-else>
-                 <tr class="hover:bg-gray-700/30 transition-colors group">
-                    <td class="p-4 flex items-center gap-3">
-                       <Icon icon="mdi:ethereum" class="w-6 h-6 text-blue-400" />
-                       <span class="font-bold">Ethereum</span>
-                    </td>
-                    <td class="p-4 text-gray-300">$10.2M</td>
-                    <td class="p-4 text-green-400 font-bold">2.5%</td>
-                    <td class="p-4 text-gray-300">$4.1M</td>
-                    <td class="p-4 text-purple-400 font-bold">3.8%</td>
-                    <td class="p-4">
-                       <button class="bg-gray-700 hover:bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm transition-colors">Details</button>
-                    </td>
-                 </tr>
-                 <tr class="hover:bg-gray-700/30 transition-colors group">
-                    <td class="p-4 flex items-center gap-3">
-                       <Icon icon="mdi:circle-multiple-outline" class="w-6 h-6 text-purple-400" />
-                       <span class="font-bold">USDT</span>
-                    </td>
-                    <td class="p-4 text-gray-300">$50.5M</td>
-                    <td class="p-4 text-green-400 font-bold">4.2%</td>
-                    <td class="p-4 text-gray-300">$35.2M</td>
-                    <td class="p-4 text-purple-400 font-bold">5.5%</td>
-                    <td class="p-4">
-                       <button class="bg-gray-700 hover:bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm transition-colors">Details</button>
-                    </td>
-                 </tr>
-               </template>
-             </tbody>
-          </table>
+          <DataTable :value="marketData" :loading="isDataLoading" tableStyle="min-width: 50rem"
+            :rowClass="() => 'hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer'"
+          >
+             <Column header="Asset">
+                <template #body="slotProps">
+                    <div class="flex items-center gap-3">
+                        <Icon :icon="slotProps.data.icon" class="w-6 h-6" :class="slotProps.data.color" />
+                        <span class="font-bold text-gray-900 dark:text-white">{{ slotProps.data.name }}</span>
+                    </div>
+                </template>
+             </Column>
+             <Column field="totalSupply" header="Total Supplied" class="text-gray-600 dark:text-gray-300"></Column>
+             <Column field="supplyAPY" header="Supply APY" class="text-green-500 dark:text-green-400 font-bold"></Column>
+             <Column field="totalBorrowed" header="Total Borrowed" class="text-gray-600 dark:text-gray-300"></Column>
+             <Column field="borrowAPY" header="Borrow APY" class="text-purple-500 dark:text-purple-400 font-bold"></Column>
+             <Column header="Action">
+                <template #body>
+                    <Button label="Details" size="small" severity="secondary" 
+                        class="bg-gray-200 dark:bg-gray-700 hover:bg-blue-600 text-gray-900 dark:text-white dark:hover:text-white border-none py-1.5" 
+                    />
+                </template>
+             </Column>
+          </DataTable>
         </div>
       </div>
 

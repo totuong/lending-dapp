@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useTheme } from './composables/useTheme';
 
 const isLoading = ref(true);
+const { initTheme } = useTheme();
 
 onMounted(() => {
+  initTheme();
   // Wait a short moment for hydration and styles to apply
   setTimeout(() => {
     isLoading.value = false;
   }, 500); 
 });
-
-useHead({
-  htmlAttrs: {
-    class: 'dark'
-  }
-})
 </script>
 
 <template>
