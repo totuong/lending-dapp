@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
+import Sidebar from '../components/Sidebar.vue';
+import DashboardHeader from '../components/DashboardHeader.vue';
 import { useWeb3 } from '../composables/useWeb3';
 import { lendingService } from '../services/lendingService';
 
@@ -39,7 +41,7 @@ const handleDeposit = async () => {
   isLoading.value = false;
   if (res.success) {
     statusMessage.value = 'Deposit Successful!';
-    depositAmount.value = '';
+    depositAmount.value = 0;
     await fetchBalance();
   } else {
     statusMessage.value = 'Error: ' + res.error;
@@ -56,7 +58,7 @@ const handleBorrow = async () => {
   isLoading.value = false;
   if (res.success) {
     statusMessage.value = 'Borrow Successful!';
-    borrowAmount.value = '';
+    borrowAmount.value = 0;
   } else {
     statusMessage.value = 'Error: ' + res.error;
   }
@@ -66,93 +68,19 @@ onMounted(() => {
     fetchBalance();
 });
 
-// Calculate Health Bar Color
-const healthColor = computed(() => {
-  if (healthFactor.value >= 1.5) return 'bg-green-500';
-  if (healthFactor.value >= 1.1) return 'bg-yellow-500';
-  return 'bg-red-500';
-});
-
-const healthPercentage = computed(() => {
-  // Map 1.0 -> 0%, 2.0 -> 100% just for visual
-  return Math.min(Math.max((healthFactor.value - 1) * 100, 5), 100) + '%'; 
-});
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-900 text-white font-sans flex">
     
     <!-- Sidebar -->
-    <aside class="w-64 bg-gray-800 border-r border-gray-700 hidden md:flex flex-col">
-      <div class="p-6 border-b border-gray-700">
-        <div class="text-2xl font-bold text-blue-400 flex items-center gap-2">
-          <Icon icon="mdi:bank" class="w-8 h-8" />
-          Lending
-        </div>
-      </div>
-      
-      <nav class="flex-grow p-4 space-y-2">
-        <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 rounded-lg border border-blue-500/20">
-          <Icon icon="mdi:view-dashboard" class="w-5 h-5" />
-          General Overview
-        </a>
-        <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-700/50 hover:text-white rounded-lg transition-colors">
-          <Icon icon="mdi:chart-line" class="w-5 h-5" />
-          Lending Market
-        </a>
-        <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-700/50 hover:text-white rounded-lg transition-colors">
-          <Icon icon="mdi:wallet" class="w-5 h-5" />
-          My Assets
-        </a>
-        <a href="#" class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-700/50 hover:text-white rounded-lg transition-colors">
-          <Icon icon="mdi:cog" class="w-5 h-5" />
-          Settings
-        </a>
-      </nav>
-
-      <div class="p-6 border-t border-gray-700">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center font-bold">
-            {{ account?.slice(2,4) }}
-          </div>
-          <div class="overflow-hidden">
-             <p class="text-sm font-bold text-white truncate w-24">{{ account }}</p>
-             <p class="text-xs text-green-400">Connected</p>
-          </div>
-        </div>
-        <button 
-          @click="disconnect"
-          class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-2 rounded-lg transition-all"
-        >
-          <Icon icon="mdi:logout" class="w-4 h-4" />
-          Disconnect
-        </button>
-      </div>
-    </aside>
+    <Sidebar />
 
     <!-- Main Content -->
     <main class="flex-grow p-8 overflow-y-auto">
       
       <!-- Top Bar (Mobile Menu + Title) -->
-      <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-          Dashboard
-        </h1>
-        <!-- Health Factor -->
-        <div class="hidden md:block w-64">
-           <div class="flex justify-between text-sm mb-1">
-             <span class="text-gray-400">Health Factor</span>
-             <span :class="healthFactor >= 1.5 ? 'text-green-400' : 'text-yellow-400'" class="font-bold">{{ healthFactor }}</span>
-           </div>
-           <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
-             <div 
-                class="h-full transition-all duration-500 rounded-full"
-                :class="healthColor"
-                :style="{ width: healthPercentage }"
-             ></div>
-           </div>
-        </div>
-      </div>
+      <DashboardHeader :healthFactor="healthFactor" />
 
       <!-- Quick Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

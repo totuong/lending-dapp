@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import Header from '../components/Header.vue';
 import { useWeb3 } from '../composables/useWeb3';
 
 const { connectWallet, isConnected, account, disconnect } = useWeb3();
@@ -13,33 +14,7 @@ const handleConnect = async () => {
 <template>
   <div class="min-h-screen bg-gray-900 text-white font-sans flex flex-col">
     <!-- Header -->
-    <header class="flex justify-between items-center p-6 border-b border-gray-700 bg-gray-800 z-10">
-      <div class="text-2xl font-bold text-blue-400 flex items-center gap-2">
-        <Icon icon="mdi:bank" class="w-8 h-8" />
-        Lending DApp
-      </div>
-      <div>
-        <button 
-          v-if="!isConnected"
-          @click="handleConnect"
-          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
-        >
-          <Icon icon="ph:wallet-bold" class="w-5 h-5" />
-          Connect Wallet
-        </button>
-        <div v-else class="flex items-center gap-4">
-          <span class="text-gray-300 text-sm bg-gray-700 px-3 py-1 rounded-full">
-            {{ account?.slice(0, 6) }}...{{ account?.slice(-4) }}
-          </span>
-          <button 
-            @click="disconnect"
-            class="text-red-400 hover:text-red-300 transition-colors"
-          >
-            Disconnect
-          </button>
-        </div>
-      </div>
-    </header>
+    <Header />
 
     <!-- Main Content -->
     <main class="flex-grow flex flex-col items-center justify-center min-h-[80vh] container mx-auto px-4">

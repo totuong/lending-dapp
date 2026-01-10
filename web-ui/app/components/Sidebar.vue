@@ -1,0 +1,89 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+import { Icon } from '@iconify/vue';
+import { useWeb3 } from '../composables/useWeb3';
+
+const { disconnect, account } = useWeb3();
+const isCollapsed = ref(false);
+</script>
+
+<template>
+  <aside 
+    class="bg-gray-800 border-r border-gray-700 hidden md:flex flex-col h-screen sticky top-0 transition-all duration-300 relative"
+    :class="isCollapsed ? 'w-20' : 'w-64'"
+  >
+      <!-- Toggle Button -->
+      <button 
+        @click="isCollapsed = !isCollapsed"
+        class="absolute -right-3 top-9 bg-gray-700 text-gray-400 hover:text-white border border-gray-600 rounded-full p-1 shadow-lg z-50 transition-colors"
+      >
+        <Icon :icon="isCollapsed ? 'mdi:chevron-right' : 'mdi:chevron-left'" class="w-4 h-4" />
+      </button>
+
+      <div class="p-6 border-b border-gray-700 overflow-hidden whitespace-nowrap">
+        <div class="text-2xl font-bold text-blue-400 flex items-center gap-2" :class="{ 'justify-center': isCollapsed }">
+          <Icon icon="mdi:bank" class="w-8 h-8 flex-shrink-0" />
+          <span v-if="!isCollapsed" class="transition-opacity duration-300">Lending</span>
+        </div>
+      </div>
+      
+      <nav class="flex-grow p-4 space-y-2 overflow-x-hidden">
+        <NuxtLink 
+          to="/dashboard" 
+          active-class="bg-blue-600/10 text-blue-400 border-blue-500/20"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-400 hover:bg-gray-700/50 hover:text-white"
+          :class="{ 'justify-center px-2': isCollapsed }"
+        >
+          <Icon icon="mdi:view-dashboard" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="!isCollapsed">General Overview</span>
+        </NuxtLink>
+        <NuxtLink 
+          to="/market" 
+          active-class="bg-blue-600/10 text-blue-400 border-blue-500/20"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-400 hover:bg-gray-700/50 hover:text-white"
+          :class="{ 'justify-center px-2': isCollapsed }"
+        >
+          <Icon icon="mdi:chart-line" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="!isCollapsed">Lending Market</span>
+        </NuxtLink>
+        <NuxtLink 
+          to="/my-assets" 
+          active-class="bg-blue-600/10 text-blue-400 border-blue-500/20"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-400 hover:bg-gray-700/50 hover:text-white"
+          :class="{ 'justify-center px-2': isCollapsed }"
+        >
+          <Icon icon="mdi:wallet" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="!isCollapsed">My Assets</span>
+        </NuxtLink>
+        <NuxtLink 
+          to="/settings" 
+          active-class="bg-blue-600/10 text-blue-400 border-blue-500/20"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-400 hover:bg-gray-700/50 hover:text-white"
+          :class="{ 'justify-center px-2': isCollapsed }"
+        >
+          <Icon icon="mdi:cog" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="!isCollapsed">Settings</span>
+        </NuxtLink>
+      </nav>
+
+      <div class="p-6 border-t border-gray-700 overflow-hidden whitespace-nowrap">
+        <div class="flex items-center gap-3 mb-4" :class="{ 'justify-center': isCollapsed }">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center font-bold flex-shrink-0">
+            {{ account?.slice(2,4) }}
+          </div>
+          <div v-if="!isCollapsed" class="overflow-hidden">
+             <p class="text-sm font-bold text-white truncate w-24">{{ account }}</p>
+             <p class="text-xs text-green-400">Connected</p>
+          </div>
+        </div>
+        <button 
+          @click="disconnect"
+          class="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 py-2 rounded-lg transition-all whitespace-nowrap"
+          :class="{ '!px-0': isCollapsed }"
+        >
+          <Icon icon="mdi:logout" class="w-4 h-4 flex-shrink-0" />
+          <span v-if="!isCollapsed">Disconnect</span>
+        </button>
+      </div>
+  </aside>
+</template>

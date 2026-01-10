@@ -8,7 +8,11 @@ dist
 
 # Node dependencies
 node_modules
-
+web-ui/node_modules
+web-ui/.nuxt
+web-ui/.output
+web-ui/.data
+blockchain/node_modules
 # Logs
 logs
 *.log
