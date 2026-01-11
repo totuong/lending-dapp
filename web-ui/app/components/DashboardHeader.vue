@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useWeb3 } from '../composables/useWeb3';
+
+const { disconnect, isConnected } = useWeb3();
 
 const props = defineProps<{
   healthFactor: number;
@@ -24,17 +27,30 @@ const healthPercentage = computed(() => {
       Dashboard
     </h1>
     <!-- Health Factor -->
-    <div class="hidden md:block w-64">
-       <div class="flex justify-between text-sm mb-1">
-         <span class="text-gray-500 dark:text-gray-400">Health Factor</span>
-         <span :class="props.healthFactor >= 1.5 ? 'text-green-500 dark:text-green-400' : 'text-yellow-500 dark:text-yellow-400'" class="font-bold">{{ props.healthFactor }}</span>
+    <div class="hidden md:flex items-center gap-6">
+       <div class="w-64">
+           <div class="flex justify-between text-sm mb-1">
+             <span class="text-gray-500 dark:text-gray-400">Health Factor</span>
+             <span :class="props.healthFactor >= 1.5 ? 'text-green-500 dark:text-green-400' : 'text-yellow-500 dark:text-yellow-400'" class="font-bold">{{ props.healthFactor }}</span>
+           </div>
+           <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+             <div 
+                class="h-full transition-all duration-500 rounded-full"
+                :class="healthColor"
+                :style="{ width: healthPercentage }"
+             ></div>
+           </div>
        </div>
-       <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-         <div 
-            class="h-full transition-all duration-500 rounded-full"
-            :class="healthColor"
-            :style="{ width: healthPercentage }"
-         ></div>
+
+       <!-- User Actions -->
+       <div class="flex items-center gap-3 border-l pl-6 border-gray-200 dark:border-gray-700">
+          <Button 
+            v-if="isConnected"
+            @click="disconnect" 
+            icon="pi pi-sign-out" 
+            class="!text-red-400 hover:!text-red-500 !bg-red-50 dark:!bg-red-500/10 border-none !h-10 !w-10 !rounded-full" 
+            v-tooltip.bottom="'Disconnect'"
+          />
        </div>
     </div>
   </div>

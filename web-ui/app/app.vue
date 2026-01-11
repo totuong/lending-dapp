@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useTheme } from './composables/useTheme';
+import { useWeb3 } from './composables/useWeb3';
 
 const isLoading = ref(true);
 const { initTheme } = useTheme();
+const { initWallet } = useWeb3();
 
-onMounted(() => {
+onMounted(async () => {
   initTheme();
+  await initWallet();
   // Wait a short moment for hydration and styles to apply
   setTimeout(() => {
     isLoading.value = false;
-  }, 500); 
+  }, 500);
 });
 </script>
 

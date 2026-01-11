@@ -1,36 +1,89 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
 import Sidebar from '../components/Sidebar.vue';
 import { useWeb3 } from '../composables/useWeb3';
+import { lendingService } from '../services/lendingService';
 
-const { account, isConnected } = useWeb3();
+const { account, isConnected, signer } = useWeb3();
 
-// Mock Data
-const totalSupplied = ref(1250.00);
-const totalBorrowed = ref(450.00);
-const healthFactor = ref(1.8);
+// Data Refs
+const totalSupplied = ref(0);
+const totalBorrowed = ref(0);
+const healthFactor = ref(2.0); // Default to safe
 
-const supplies = ref([
-  {
-      symbol: 'ETH',
-      name: 'Ethereum',
-      icon: 'mdi:ethereum',
-      balance: '1.5',
-      apy: '4.0%',
-      isCollateral: true
-  }
-]);
+const supplies = ref<any[]>([]);
+const borrows = ref<any[]>([]);
+const isLoading = ref(true);
 
-const borrows = ref([
-  {
-      symbol: 'TOK',
-      name: 'Mock Token',
-      icon: 'mdi:circle-multiple-outline',
-      debt: '500',
-      apy: '6.0%'
-  }
-]);
+const fetchUserAssets = async () => {
+    if (!isConnected.value || !signer.value) {
+        isLoading.value = false;
+        return;
+    }
+
+    try {
+        const supplyRes = await lendingService.getUserBalance(signer.value);
+        const borrowRes = await lendingService.getUserBorrowBalance(signer.value);
+        
+        // --- 1. Process Supply Data ("ETH") ---
+        const ethBalance = supplyRes.success && supplyRes.data ? parseFloat(supplyRes.data) : 0;
+        
+        if (ethBalance > 0) {
+            supplies.value = [{
+                symbol: 'ETH',
+                name: 'Ethereum',
+                icon: 'mdi:ethereum',
+                balance: ethBalance.toFixed(4), // Display 4 decimals
+                apy: '2.5%', // Mock APY for now
+                isCollateral: true,
+                rawBalance: ethBalance
+            }];
+        } else {
+            supplies.value = [];
+        }
+
+        // --- 2. Process Borrow Data ("Mock Token") ---
+        const tokenDebt = borrowRes.success && borrowRes.data ? parseFloat(borrowRes.data) : 0;
+        
+        if (tokenDebt > 0) {
+            borrows.value = [{
+                symbol: 'TOK',
+                name: 'Mock Token',
+                icon: 'mdi:circle-multiple-outline',
+                debt: tokenDebt.toFixed(2),
+                apy: '5.5%', // Mock APY
+                rawBalance: tokenDebt
+            }];
+        } else {
+            borrows.value = [];
+        }
+
+        // --- 3. Calculate Totals (Assuming 1 ETH = $2000, 1 TOK = $1) ---
+        // Contract logic uses 2000 MockTokens = 1 ETH. 
+        // If we assume MockToken is $1, then ETH is $2000.
+        const ethPrice = 2000;
+        const tokenPrice = 1;
+
+        totalSupplied.value = parseFloat((ethBalance * ethPrice).toFixed(2));
+        totalBorrowed.value = parseFloat((tokenDebt * tokenPrice).toFixed(2));
+
+        // --- 4. Calculate Health Factor ---
+        // Max Borrow = Supply * Price * 80%
+        // HF = Max Borrow / Total Borrowed
+        const maxBorrow = totalSupplied.value * 0.8;
+        if (totalBorrowed.value > 0) {
+            healthFactor.value = parseFloat((maxBorrow / totalBorrowed.value).toFixed(2));
+        } else {
+            healthFactor.value = 999; // Infinite/Safe
+        }
+
+    } catch (e) {
+        console.error("Error fetching assets:", e);
+    } finally {
+        isLoading.value = false;
+    }
+};
 
 const isEmpty = computed(() => {
     return supplies.value.length === 0 && borrows.value.length === 0;
@@ -44,16 +97,24 @@ const healthColor = computed(() => {
 });
 
 const healthPercentage = computed(() => {
+  // Cap at 100% for display
+  if (healthFactor.value > 2) return '100%';
   return Math.min(Math.max((healthFactor.value - 1) * 100, 5), 100) + '%'; 
 });
 
 const handleWithdraw = (asset: any) => {
     console.log("Withdraw", asset);
+    // TODO: Implement Withdraw
 }
 
 const handleRepay = (asset: any) => {
     console.log("Repay", asset);
+    // TODO: Implement Repay
 }
+
+onMounted(() => {
+    fetchUserAssets();
+});
 </script>
 
 <template>
@@ -77,12 +138,14 @@ const handleRepay = (asset: any) => {
               <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 relative overflow-hidden shadow-sm dark:shadow-none">
                   <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-100 dark:bg-green-500/10 rounded-full blur-2xl"></div>
                   <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">Total Supplied Value</p>
-                  <p class="text-3xl font-bold text-green-500 dark:text-green-400">${{ totalSupplied }}</p>
+                  <p v-if="!isLoading" class="text-3xl font-bold text-green-500 dark:text-green-400">${{ totalSupplied }}</p>
+                  <Skeleton v-else width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
               </div>
               <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 relative overflow-hidden shadow-sm dark:shadow-none">
                   <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-100 dark:bg-red-500/10 rounded-full blur-2xl"></div>
                   <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">Total Borrowed Value</p>
-                  <p class="text-3xl font-bold text-red-500 dark:text-red-400">${{ totalBorrowed }}</p>
+                  <p v-if="!isLoading" class="text-3xl font-bold text-red-500 dark:text-red-400">${{ totalBorrowed }}</p>
+                  <Skeleton v-else width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
               </div>
           </div>
 

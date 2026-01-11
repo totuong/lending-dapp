@@ -1,8 +1,17 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import Sidebar from '../components/Sidebar.vue';
 import TVLChart from '../components/market/TVLChart.vue';
 import DistributionChart from '../components/market/DistributionChart.vue';
 import TableModel from '../components/market/TableModel.vue';
+
+const isLoading = ref(true);
+
+onMounted(async () => {
+    // Simulate data fetching for visual feedback
+    await new Promise(resolve => setTimeout(resolve, 500));
+    isLoading.value = false;
+});
 </script>
 
 <template>
@@ -16,9 +25,14 @@ import TableModel from '../components/market/TableModel.vue';
       </h1>
 
       <!-- Charts Section -->
-      <div class="grid lg:grid-cols-2 gap-8 mb-8">
+      <div v-if="!isLoading" class="grid lg:grid-cols-2 gap-8 mb-8 animate-fade-in">
           <TVLChart />
           <DistributionChart />
+      </div>
+      <div v-else class="grid lg:grid-cols-2 gap-8 mb-8">
+          <!-- Skeletons for Charts -->
+          <Skeleton height="300px" borderRadius="16px" class="!bg-gray-200 dark:!bg-gray-700" />
+          <Skeleton height="300px" borderRadius="16px" class="!bg-gray-200 dark:!bg-gray-700" />
       </div>
       
       <!-- Market Table -->

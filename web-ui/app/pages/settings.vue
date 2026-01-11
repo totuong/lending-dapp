@@ -14,6 +14,7 @@ const slippage = ref('0.1');
 const infiniteApproval = ref(false);
 const language = ref('en');
 const { isDark, toggleTheme } = useTheme();
+const toast = useToast();
 
 // Load settings from localStorage
 onMounted(() => {
@@ -30,7 +31,7 @@ watch(language, (val) => localStorage.setItem('language', val));
 const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     // Suggestion: Add toast here
-    alert('Copied to clipboard: ' + text);
+   toast.add({ severity: 'success', position: 'bottom-right', summary: 'Copied', detail: 'Copied to clipboard: ' + text, life: 3000 });
 };
 
 const handleRevoke = () => {

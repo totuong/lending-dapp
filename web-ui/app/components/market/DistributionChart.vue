@@ -34,6 +34,7 @@ const setChartOptions = () => {
     const tickColor = isDark.value ? '#9ca3af' : '#4b5563'; // gray-400 : gray-600
     
     chartOptions.value = {
+        maintainAspectRatio: false,
         cutout: '60%', // Thinner ring
         plugins: {
             legend: {
