@@ -2,8 +2,10 @@
 import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useWeb3 } from '../composables/useWeb3';
+import { useTheme } from '../composables/useTheme';
 
 const { disconnect, account } = useWeb3();
+const { isDark, toggleTheme } = useTheme();
 const isCollapsed = ref(false);
 </script>
 
@@ -20,11 +22,21 @@ const isCollapsed = ref(false);
         <Icon :icon="isCollapsed ? 'mdi:chevron-right' : 'mdi:chevron-left'" class="w-4 h-4" />
       </button>
 
-      <div class="p-6 border-b border-gray-200 dark:border-gray-700 overflow-hidden whitespace-nowrap">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-700 overflow-hidden whitespace-nowrap flex items-center justify-between">
         <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2" :class="{ 'justify-center': isCollapsed }">
           <Icon icon="mdi:bank" class="w-8 h-8 flex-shrink-0" />
           <span v-if="!isCollapsed" class="transition-opacity duration-300">Lending</span>
         </div>
+        
+        <!-- Dark Mode Toggle (only visible when expanded) -->
+        <button 
+            v-if="!isCollapsed"
+            @click="toggleTheme"
+            class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Toggle Dark Mode"
+        >
+             <Icon :icon="isDark ? 'mdi:weather-night' : 'mdi:weather-sunny'" class="w-6 h-6" :class="isDark ? 'text-blue-400' : 'text-yellow-500'" />
+        </button>
       </div>
       
       <nav class="flex-grow p-4 space-y-2 overflow-x-hidden">
@@ -63,6 +75,15 @@ const isCollapsed = ref(false);
         >
           <Icon icon="mdi:cog" class="w-5 h-5 flex-shrink-0" />
           <span v-if="!isCollapsed">Settings</span>
+        </NuxtLink>
+        <NuxtLink 
+          to="/guide" 
+          active-class="bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
+          :class="{ 'justify-center px-2': isCollapsed }"
+        >
+          <Icon icon="mdi:book-open-page-variant" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="!isCollapsed">Guide</span>
         </NuxtLink>
       </nav>
 
