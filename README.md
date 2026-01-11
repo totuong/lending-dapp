@@ -72,14 +72,16 @@ Run the user interface.
 
 ## Connecting MetaMask
 
+> **Video Tutorial**: For a visual guide on setting up the local network, verify from [4:02 in this video](https://www.youtube.com/watch?v=bYD9gaU_n6M).
+
 1.  Open MetaMask and add a custom network:
-    *   **Network Name**: Hardhat Local
+    *   **Network Name**: Hardhat Local (or Localhost 8545)
     *   **RPC URL**: `http://127.0.0.1:8545/`
-    *   **Chain ID**: `1337`
+    *   **Chain ID**: `1337` (or `31337` if `1337` doesn't work)
     *   **Currency Symbol**: ETH
 2.  Import an Account:
-    *   Use one of the private keys displayed when you started `npx hardhat node`.
-    *   Paste the private key into MetaMask to access test funds (10,000 ETH).
+    *   Use one of the private keys displayed when you started `npx hardhat node` (e.g., Account #0).
+    *   Paste the private key into MetaMask -> Import Account to access test funds (10,000 ETH).
 
 ## Features
 
