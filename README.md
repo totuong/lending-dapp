@@ -72,7 +72,7 @@ Run the user interface.
 
 ## Connecting MetaMask
 
-> **Video Tutorial**: For a visual guide on setting up the local network, verify from [4:02 in this video](https://www.youtube.com/watch?v=bYD9gaU_n6M).
+> **Video Tutorial**: For a visual guide on setting up the local network, verify from [in this video](https://www.youtube.com/watch?v=bYD9gaU_n6M).
 
 1.  Open MetaMask and add a custom network:
     *   **Network Name**: Hardhat Local (or Localhost 8545)
