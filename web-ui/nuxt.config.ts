@@ -22,7 +22,10 @@ export default defineNuxtConfig({
       }
     }
   },
-  css: ['~/assets/css/main.css'],
+  css: [
+    'primeicons/primeicons.css',
+    '~/assets/css/main.css'
+  ],
   tailwindcss: {
     exposeConfig: true,
     viewer: true

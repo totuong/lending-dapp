@@ -38,14 +38,19 @@ const assets = ref([
   },
 ]);
 
-const handleDetails = (asset: any) => {
-  console.log('View details for', asset.symbol);
+// --- Dialog Logic ---
+const visible = ref(false);
+const selectedAsset = ref<any>(null);
+
+const openDetails = (asset: any) => {
+  selectedAsset.value = asset;
+  visible.value = true;
 };
 </script>
 
 <template>
   <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm dark:shadow-none">
-    <DataTable :value="assets" selectionMode="single" @rowSelect="(e) => handleDetails(e.data)" dataKey="symbol"
+    <DataTable :value="assets" selectionMode="single" @rowSelect="(e: any) => openDetails(e.data)" dataKey="symbol"
         tableStyle="min-width: 50rem"
         :rowClass="() => 'hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer'"
     >
@@ -70,13 +75,58 @@ const handleDetails = (asset: any) => {
                     label="Details" 
                     icon="pi pi-info-circle" 
                     size="small" 
-                    severity="secondary" 
-                    outlined
-                    class="!bg-gray-200 dark:!bg-gray-700 !border-none hover:!bg-blue-600 hover:!text-white dark:hover:!text-white !text-gray-900 dark:!text-white transition-colors"
-                    @click="handleDetails(slotProps.data)"
+                    class="!bg-gradient-to-r !from-blue-500 !to-cyan-500 hover:!from-blue-600 hover:!to-cyan-600 !text-white !border-none !rounded-lg !px-4 !py-1.5 !shadow-sm hover:!shadow-md transition-all font-semibold"
+                    @click.stop="openDetails(slotProps.data)"
                 />
             </template>
         </Column>
     </DataTable>
   </div>
+
+  <Dialog v-model:visible="visible" modal :header="selectedAsset?.name + ' Details'" :style="{ width: '30rem' }">
+      <div v-if="selectedAsset" class="space-y-4">
+          <div class="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <Icon :icon="selectedAsset.icon" class="w-12 h-12" :class="selectedAsset.color" />
+              <div>
+                  <p class="text-2xl font-bold">{{ selectedAsset.name }}</p>
+                  <p class="text-gray-500">{{ selectedAsset.symbol }}</p>
+              </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+              <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                  <p class="text-xs text-gray-500 mb-1">Total Supply</p>
+                  <p class="font-bold text-lg">{{ selectedAsset.totalSupply }}</p>
+              </div>
+              <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                  <p class="text-xs text-gray-500 mb-1">Total Borrow</p>
+                  <p class="font-bold text-lg">{{ selectedAsset.totalBorrowed }}</p>
+              </div>
+              <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                  <p class="text-xs text-gray-500 mb-1">Supply APY</p>
+                  <p class="font-bold text-green-500">{{ selectedAsset.supplyAPY }}</p>
+              </div>
+              <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                  <p class="text-xs text-gray-500 mb-1">Borrow APY</p>
+                  <p class="font-bold text-purple-500">{{ selectedAsset.borrowAPY }}</p>
+              </div>
+          </div>
+
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+              <h4 class="font-bold mb-2">Protocol Stats (Mock)</h4>
+              <div class="flex justify-between text-sm py-1">
+                  <span class="text-gray-500">Utilization Rate</span>
+                  <span class="font-mono">74.5%</span>
+              </div>
+              <div class="flex justify-between text-sm py-1">
+                  <span class="text-gray-500">Liquidation Threshold</span>
+                  <span class="font-mono">82.5%</span>
+              </div>
+              <div class="flex justify-between text-sm py-1">
+                  <span class="text-gray-500">Reserve Factor</span>
+                  <span class="font-mono">10.0%</span>
+              </div>
+          </div>
+      </div>
+  </Dialog>
 </template>

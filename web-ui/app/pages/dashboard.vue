@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, defineAsyncComponent } from 'vue';
 import { Icon } from '@iconify/vue';
+import { ethers } from 'ethers';
 import Sidebar from '../components/Sidebar.vue';
 import DashboardHeader from '../components/DashboardHeader.vue';
 import { useWeb3 } from '../composables/useWeb3';
@@ -50,7 +51,7 @@ const marketData = ref([
 
 const fetchBalance = async () => {
   isDataLoading.value = true;
-  if (isConnected.value && signer.value) {
+  if (isConnected.value && signer.value && account.value) {
     // 1. Get Wallet Balance (ETH for display in Supply card)
     // Note: getUserBalance in lendingService currently returns DEPOSITED balance from contract, NOT wallet balance.
     // We should probably explicitly separate them if needed. 
@@ -68,10 +69,27 @@ const fetchBalance = async () => {
       userBorrowBalance.value = borrowRes.data;
     }
 
-    // Simple Net Worth Calc
+    // Simple Net Worth Calc (Mock Price: ETH = $2000, USDT = $1)
+    const PREDEFINED_ETH_PRICE = 2000;
     const supplyVal = parseFloat(userSupplyBalance.value || '0');
     const borrowVal = parseFloat(userBorrowBalance.value || '0');
-    netWorth.value = (supplyVal - borrowVal).toFixed(4);
+    
+    // Net Worth in ETH = SupplyETH - (BorrowUSDT / ETH_PRICE)
+    const borrowInEth = borrowVal / PREDEFINED_ETH_PRICE;
+    netWorth.value = (supplyVal - borrowInEth).toFixed(4);
+
+    // --- Calculate Health Factor ---
+    // Supply USD = SupplyETH * 2000
+    // Max Borrow = Supply USD * 0.8 (80% LTV)
+    // HF = Max Borrow / Borrow USD
+    const supplyInUsd = supplyVal * PREDEFINED_ETH_PRICE;
+    const maxBorrowUsd = supplyInUsd * 0.8;
+    
+    if (borrowVal > 0) {
+        healthFactor.value = parseFloat((maxBorrowUsd / borrowVal).toFixed(2));
+    } else {
+        healthFactor.value = 999; // Safe/Infinite
+    }
     
     // Update display strings
     // We might need a real price feed for $ value, but using ETH amounts for now as per "Mock" removal request
@@ -110,14 +128,30 @@ const handleBorrow = async () => {
   if (res.success) {
     statusMessage.value = 'Borrow Successful!';
     borrowAmount.value = 0;
+    await fetchBalance();
   } else {
     statusMessage.value = 'Error: ' + res.error;
   }
 };
 
+const setMaxDeposit = () => {
+    if (userBalance.value) {
+        depositAmount.value = parseFloat(userBalance.value);
+    }
+};
+
 onMounted(() => {
     fetchBalance();
 });
+
+// --- Dialog Logic ---
+const visible = ref(false);
+const selectedAsset = ref<any>(null);
+
+const openDetails = (asset: any) => {
+    selectedAsset.value = asset;
+    visible.value = true;
+};
 
 </script>
 
@@ -156,7 +190,7 @@ onMounted(() => {
                <div v-if="isDataLoading" class="h-8 w-32">
                  <Skeleton width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
                </div>
-              <p v-else class="text-3xl font-bold text-purple-500 dark:text-purple-400">{{ userBorrowBalance }} ETH</p>
+              <p v-else class="text-3xl font-bold text-purple-500 dark:text-purple-400">{{ userBorrowBalance }} USDT</p>
            </div>
         </div>
 
@@ -199,7 +233,7 @@ onMounted(() => {
                       inputClass="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg py-3 px-4 text-gray-900 dark:text-white focus:outline-none focus:border-green-500 transition-colors"
                     />
                     <div class="absolute right-3 top-3 z-10">
-                       <Button label="MAX" size="small" severity="secondary" text class="!text-xs !bg-gray-700 !text-gray-300 hover:!bg-gray-600" />
+                       <Button label="MAX" @click="setMaxDeposit" size="small" severity="secondary" text class="!text-xs !bg-gray-700 !text-gray-300 hover:!bg-gray-600" />
                     </div>
                </div>
                
@@ -209,7 +243,7 @@ onMounted(() => {
                   :loading="isLoading"
                   label="Supply ETH"
                   icon="pi pi-check"
-                  class="w-full !bg-gradient-to-r !from-green-600 !to-emerald-600 hover:!from-green-500 hover:!to-emerald-500 !border-none"
+                  class="w-full !bg-gradient-to-r !from-green-600 !to-emerald-600 hover:!from-green-500 hover:!to-emerald-500 !border-none !text-white !font-bold !py-3 !rounded-xl !shadow-lg !shadow-green-500/20 hover:!shadow-green-500/40 transition-all duration-300 transform hover:-translate-y-0.5"
                />
             </div>
 
@@ -254,7 +288,7 @@ onMounted(() => {
                   :loading="isLoading"
                   label="Borrow Token"
                   icon="pi pi-briefcase"
-                  class="w-full !bg-gradient-to-r !from-purple-600 !to-indigo-600 hover:!from-purple-500 hover:!to-indigo-500 !border-none"
+                  class="w-full !bg-gradient-to-r !from-purple-600 !to-indigo-600 hover:!from-purple-500 hover:!to-indigo-500 !border-none !text-white !font-bold !py-3 !rounded-xl !shadow-lg !shadow-purple-500/20 hover:!shadow-purple-500/40 transition-all duration-300 transform hover:-translate-y-0.5"
                />
             </div>
         </div>
@@ -314,9 +348,11 @@ onMounted(() => {
              <Column field="totalBorrowed" header="Total Borrowed" class="text-gray-600 dark:text-gray-300"></Column>
              <Column field="borrowAPY" header="Borrow APY" class="text-purple-500 dark:text-purple-400 font-bold"></Column>
              <Column header="Action">
-                <template #body>
-                    <Button label="Details" size="small" severity="secondary" 
-                        class="bg-gray-200 dark:bg-gray-700 hover:bg-blue-600 text-gray-900 dark:text-white dark:hover:text-white border-none py-1.5" 
+                <template #body="slotProps">
+                    <Button label="Details" size="small" 
+                        class="!bg-gradient-to-r !from-blue-500 !to-cyan-500 hover:!from-blue-600 hover:!to-cyan-600 !text-white !border-none !rounded-lg !px-4 !py-1.5 !shadow-sm hover:!shadow-md transition-all font-semibold" 
+                        @click="openDetails(slotProps.data)"
+                        icon="pi pi-info-circle"
                     />
                 </template>
              </Column>
@@ -325,5 +361,55 @@ onMounted(() => {
       </div>
 
     </main>
+      <Dialog v-model:visible="visible" modal :header="selectedAsset?.name + ' Details'" :style="{ width: '30rem' }">
+         <div v-if="selectedAsset" class="space-y-4">
+             <div class="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                 <Icon :icon="selectedAsset.icon" class="w-12 h-12" :class="selectedAsset.color" />
+                 <div>
+                     <p class="text-2xl font-bold">{{ selectedAsset.name }}</p>
+                     <p class="text-gray-500">{{ selectedAsset.name === 'Ethereum' ? 'ETH' : 'USDT' }}</p>
+                 </div>
+             </div>
+             
+             <div class="grid grid-cols-2 gap-4">
+                 <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                     <p class="text-xs text-gray-500 mb-1">Total Supply</p>
+                     <p class="font-bold text-lg">{{ selectedAsset.totalSupply }}</p>
+                 </div>
+                 <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                     <p class="text-xs text-gray-500 mb-1">Total Borrow</p>
+                     <p class="font-bold text-lg">{{ selectedAsset.totalBorrowed }}</p>
+                 </div>
+                 <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                     <p class="text-xs text-gray-500 mb-1">Supply APY</p>
+                     <p class="font-bold text-green-500">{{ selectedAsset.supplyAPY }}</p>
+                 </div>
+                 <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
+                     <p class="text-xs text-gray-500 mb-1">Borrow APY</p>
+                     <p class="font-bold text-purple-500">{{ selectedAsset.borrowAPY }}</p>
+                 </div>
+             </div>
+
+             <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                 <h4 class="font-bold mb-2">Protocol Stats (Mock)</h4>
+                 <div class="flex justify-between text-sm py-1">
+                     <span class="text-gray-500">Utilization Rate</span>
+                     <span class="font-mono">74.5%</span>
+                 </div>
+                 <div class="flex justify-between text-sm py-1">
+                     <span class="text-gray-500">Liquidation Threshold</span>
+                     <span class="font-mono">82.5%</span>
+                 </div>
+                 <div class="flex justify-between text-sm py-1">
+                     <span class="text-gray-500">Reserve Factor</span>
+                     <span class="font-mono">10.0%</span>
+                 </div>
+             </div>
+
+             <div class="flex gap-2 mt-6">
+                 <!-- Actions could go here -->
+             </div>
+         </div>
+      </Dialog>
   </div>
 </template>
