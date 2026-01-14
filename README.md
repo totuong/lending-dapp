@@ -36,9 +36,26 @@ Run a local blockchain node and deploy contracts.
 4.  Open a **new** terminal window and deploy the contracts:
     ```bash
     cd blockchain
-    npx hardhat run scripts/deploy.js --network localhost
+    npm run deploy -- --network localhost
     ```
     *Note: Copy the `LendingPool` contract address printed in the console.*
+
+### Option 2: Deploy & Seed Data (Recommended for Dev)
+
+To start with a pre-populated environment (contracts deployed + user deposits/loans):
+```bash
+cd blockchain
+# Runs the seed script (deploys contracts + seeds data)
+npm run seed -- --network localhost
+```
+*Use the addresses printed by this script in your frontend.*
+
+### Quickstart (Combined)
+To deploy and seed (running both scripts sequentially):
+```bash
+cd blockchain
+npm run deploy-full
+```
 
 ### 2. Web UI Setup (Frontend)
 
