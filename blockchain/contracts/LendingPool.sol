@@ -12,8 +12,16 @@ contract LendingPool is ReentrancyGuard, Ownable {
     IERC20 public lendingToken;
     uint256 public ethPrice; // Price of 1 ETH in LendingToken units (e.g. 2000 Tokens)
 
+    address[] public borrowers;
+    mapping(address => bool) public hasBorrowed;
+
+    function getBorrowers() external view returns (address[] memory) {
+        return borrowers;
+    }
+
     event Deposit(address indexed user, uint256 amount);
     event Borrow(address indexed user, uint256 amount);
+    event Repay(address indexed user, uint256 amount);
     event PriceUpdated(uint256 newPrice);
 
     constructor(address _lendingToken, uint256 _initialEthPrice) {
@@ -36,22 +44,54 @@ contract LendingPool is ReentrancyGuard, Ownable {
      */
     function borrow(uint256 amount) external nonReentrant {
         require(amount > 0, "Amount must be greater than 0");
-        
+
         uint256 ethValue = deposits[msg.sender];
         // Calculate max borrowable amount: (ETH Amount * Price * 80) / 100
-        // We assume ethPrice has same decimals handling as the token for simplicity, 
+        // We assume ethPrice has same decimals handling as the token for simplicity,
         // or effectively: 1 ETH * Price = Value in Token.
         // real-world oracles require careful decimal handling.
-        uint256 collateralValueInToken = ethValue * ethPrice; 
+        uint256 collateralValueInToken = ethValue * ethPrice;
         uint256 maxBorrow = (collateralValueInToken * 80) / 100;
 
-        require(loans[msg.sender] + amount <= maxBorrow, "Insufficient collateral");
-        require(lendingToken.balanceOf(address(this)) >= amount, "Insufficient pool liquidity");
+        require(
+            loans[msg.sender] + amount <= maxBorrow,
+            "Insufficient collateral"
+        );
+        require(
+            lendingToken.balanceOf(address(this)) >= amount,
+            "Insufficient pool liquidity"
+        );
 
         loans[msg.sender] += amount;
+
+        if (!hasBorrowed[msg.sender]) {
+            borrowers.push(msg.sender);
+            hasBorrowed[msg.sender] = true;
+        }
+
         require(lendingToken.transfer(msg.sender, amount), "Transfer failed");
 
         emit Borrow(msg.sender, amount);
+    }
+
+    /**
+     * @dev User repays tokens to reduce debt.
+     * @param amount The amount of tokens to repay.
+     */
+    function repay(uint256 amount) external nonReentrant {
+        require(amount > 0, "Amount must be greater than 0");
+        require(loans[msg.sender] >= amount, "Amount exceeds debt");
+
+        // Decrement the loan balance
+        loans[msg.sender] -= amount;
+
+        // Transfer tokens from user to contract
+        require(
+            lendingToken.transferFrom(msg.sender, address(this), amount),
+            "Transfer failed"
+        );
+
+        emit Repay(msg.sender, amount);
     }
 
     /**
@@ -66,6 +106,50 @@ contract LendingPool is ReentrancyGuard, Ownable {
 
     // Function to fund the contract with lending tokens (for testing purposes)
     function fundPool(uint256 amount) external onlyOwner {
-        require(lendingToken.transferFrom(msg.sender, address(this), amount), "Transfer failed");
+        require(
+            lendingToken.transferFrom(msg.sender, address(this), amount),
+            "Transfer failed"
+        );
+    }
+
+    /**
+     * @dev Liquidate a user's position if Health Factor < 1.
+     * @param user The address of the borrower to liquidate.
+     */
+    function liquidate(address user) external nonReentrant {
+        uint256 totalDebt = loans[user];
+        require(totalDebt > 0, "No debt to liquidate");
+
+        uint256 ethValue = deposits[user];
+        uint256 collateralValueInToken = ethValue * ethPrice;
+        // Max borrow allowed is 80% of collateral value
+        uint256 maxBorrow = (collateralValueInToken * 80) / 100;
+
+        require(totalDebt > maxBorrow, "Health Factor is >= 1");
+
+        // Calculate collateral to seize: (Debt / Price) + 10% bonus
+        // Debt in Token / Price = ETH value of Debt
+        uint256 baseCollateralETH = totalDebt / ethPrice;
+        uint256 bonusETH = (baseCollateralETH * 10) / 100;
+        uint256 totalCollateralToSeize = baseCollateralETH + bonusETH;
+
+        require(
+            deposits[user] >= totalCollateralToSeize,
+            "Insufficient collateral to seize"
+        );
+
+        // Repay debt: Liquidator pays Token
+        require(
+            lendingToken.transferFrom(msg.sender, address(this), totalDebt),
+            "Token transfer failed"
+        );
+
+        // Update state
+        loans[user] = 0;
+        deposits[user] -= totalCollateralToSeize;
+
+        // Send seized ETH to liquidator
+        (bool success, ) = msg.sender.call{value: totalCollateralToSeize}("");
+        require(success, "ETH transfer failed");
     }
 }

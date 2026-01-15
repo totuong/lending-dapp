@@ -37,14 +37,40 @@ async function main() {
 
     console.log(`LendingPool funded with ${hre.ethers.formatEther(fundAmount)} tokens`);
 
-    console.log("\n=================================================");
+    console.log("=================================================");
     console.log("COPY THESE ADDRESSES TO YOUR FRONTEND:");
     console.log("LENDING_POOL_ADDRESS:", lendingPoolAddress);
     console.log("MOCK_TOKEN_ADDRESS:", mockTokenAddress);
     console.log("=================================================");
-}
 
-main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-});
+    // --- AUTO-UPDATE FRONTEND ABI ---
+    const fs = require("fs");
+    const path = require("path");
+
+    // Adjust paths as necessary
+    const frontendAbiDir = path.join(__dirname, "../../web-ui/app/utils/abis");
+
+    if (!fs.existsSync(frontendAbiDir)) {
+        fs.mkdirSync(frontendAbiDir, { recursive: true });
+    }
+
+    const lendingPoolArtifact = await hre.artifacts.readArtifact("LendingPool");
+    const mockTokenArtifact = await hre.artifacts.readArtifact("MockToken");
+
+    fs.writeFileSync(
+        path.join(frontendAbiDir, "LendingPool.json"),
+        JSON.stringify(lendingPoolArtifact, null, 2)
+    );
+    // Also copy MockToken ABI if needed (useful for wallet interactions)
+    fs.writeFileSync(
+        path.join(frontendAbiDir, "MockToken.json"),
+        JSON.stringify(mockTokenArtifact, null, 2)
+    );
+
+    console.log("✅ ABI files automatically copied to frontend!");
+
+    main().catch((error) => {
+        console.error(error);
+        process.exitCode = 1;
+    });
+}

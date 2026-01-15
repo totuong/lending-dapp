@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import Sidebar from '../components/Sidebar.vue';
 import { useWeb3 } from '../composables/useWeb3';
@@ -114,6 +114,13 @@ const handleRepay = (asset: any) => {
 
 onMounted(() => {
     fetchUserAssets();
+});
+
+// Watch for connection changes
+watch(isConnected, (newVal) => {
+    if (newVal) {
+        fetchUserAssets();
+    }
 });
 </script>
 

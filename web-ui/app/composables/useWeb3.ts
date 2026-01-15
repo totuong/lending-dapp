@@ -12,6 +12,7 @@ export const useWeb3 = () => {
     const isConnected = useState<boolean>('web3_isConnected', () => false);
     const provider = useState<ethers.BrowserProvider | null>('web3_provider', () => null);
     const signer = useState<ethers.JsonRpcSigner | null>('web3_signer', () => null);
+    const isConnecting = useState<boolean>('web3_isConnecting', () => false);
 
     const router = useRouter();
     const toast = useToast();
@@ -26,7 +27,7 @@ export const useWeb3 = () => {
             isConnected.value = true; // Ensure status reflects account presence
             if (provider.value) {
                 const _signer = await provider.value.getSigner();
-                signer.value = _signer; 
+                signer.value = _signer;
                 router.push('/dashboard');
             }
         }
@@ -71,6 +72,7 @@ export const useWeb3 = () => {
 
     const connectWallet = async () => {
         console.log("Attempting to connect wallet...");
+        isConnecting.value = true;
         if (process.client && (window as any).ethereum) {
             try {
                 const _provider = new ethers.BrowserProvider((window as any).ethereum);
@@ -94,12 +96,20 @@ export const useWeb3 = () => {
                 }
             } catch (error) {
                 console.error("User denied account access or error occurred:", error);
-                toast.add({ severity: 'error', summary: 'Connection Failed', detail: 'User denied account access.', life: 3000 });
+                // Check if the error is a user rejection or something else
+                if ((error as any).code === 4001) {
+                    toast.add({ severity: 'error', summary: 'Connection Rejected', detail: 'User denied account access.', life: 3000 });
+                } else {
+                    toast.add({ severity: 'error', summary: 'Connection Failed', detail: 'Failed to connect to MetaMask', life: 3000 });
+                    toast.add({ severity: 'error', summary: 'Connection Failed', detail: 'Failed to connect to MetaMask', life: 3000 });
+                }
+            } finally {
+                isConnecting.value = false;
             }
         } else {
-           // ... (MetaMask check code) ...
-           console.warn("MetaMask not installed");
-           toast.add({ severity: 'warn', summary: 'Wallet Missing', detail: 'MetaMask not found', life: 3000 });
+            // ... (MetaMask check code) ...
+            console.warn("MetaMask not installed");
+            toast.add({ severity: 'warn', summary: 'Wallet Missing', detail: 'MetaMask not found', life: 3000 });
         }
     };
 
@@ -121,7 +131,7 @@ export const useWeb3 = () => {
 
     const initWallet = async () => {
         console.log("Initializing wallet (persistence check)...");
-        
+
         // If user explicitly disconnected, do not auto-connect
         if (localStorage.getItem('isExplicitlyDisconnected') === 'true') {
             console.log("User explicitly disconnected previously. Skipping auto-connect.");
@@ -135,17 +145,18 @@ export const useWeb3 = () => {
                 console.log("Found accounts:", accounts);
 
                 if (accounts.length > 0) {
-                     const _signer = await _provider.getSigner();
-                     provider.value = _provider;
-                     signer.value = _signer;
-                     account.value = accounts[0];
-                     isConnected.value = true;
-                     
-                     setupListeners();
-                     console.log("Wallet auto-connected.");
+                    const _signer = await _provider.getSigner();
+                    provider.value = _provider;
+                    signer.value = _signer;
+                    account.value = accounts[0];
+                    isConnected.value = true;
+
+                    setupListeners();
+                    console.log("Wallet auto-connected.");
                 }
             } catch (error) {
                 console.error("Auto-connect failed:", error);
+                toast.add({ severity: 'error', summary: 'Connection Error', detail: 'Failed to connect to MetaMask', life: 3000 });
             }
         }
     };
@@ -157,6 +168,7 @@ export const useWeb3 = () => {
         signer,
         connectWallet,
         disconnect,
-        initWallet
+        initWallet,
+        isConnecting
     };
 };

@@ -68,6 +68,15 @@ const isCollapsed = ref(false);
           <span v-if="!isCollapsed">My Assets</span>
         </NuxtLink>
         <NuxtLink 
+          to="/liquidation" 
+          active-class="bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
+          :class="{ 'justify-center px-2': isCollapsed }"
+        >
+          <Icon icon="mdi:gavel" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="!isCollapsed">Liquidation</span>
+        </NuxtLink>
+        <NuxtLink 
           to="/settings" 
           active-class="bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
           class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"

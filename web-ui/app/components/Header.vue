@@ -2,7 +2,7 @@
 import { Icon } from '@iconify/vue';
 import { useWeb3 } from '../composables/useWeb3';
 
-const { connectWallet, isConnected, account, disconnect } = useWeb3();
+const { connectWallet, isConnected, account, disconnect, isConnecting } = useWeb3();
 
 const handleConnect = async () => {
   await connectWallet();
@@ -18,11 +18,18 @@ const handleConnect = async () => {
     <div>
       <button 
         v-if="!isConnected"
+        class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         @click="handleConnect"
-        class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+        :disabled="isConnecting"
       >
-        <Icon icon="ph:wallet-bold" class="w-5 h-5" />
-        Connect Wallet
+        <template v-if="isConnecting">
+          <Icon icon="eos-icons:loading" class="w-5 h-5 animate-spin" />
+          Connecting...
+        </template>
+        <template v-else>
+          <Icon icon="ph:wallet-bold" class="w-5 h-5" />
+          Connect Wallet
+        </template>
       </button>
       <div v-else class="flex items-center gap-4">
         <span class="text-gray-600 dark:text-gray-300 text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
@@ -47,10 +54,17 @@ const handleConnect = async () => {
          <button 
           v-if="!isConnected"
           @click="handleConnect"
-          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-3 rounded-lg transition-colors"
+          :disabled="isConnecting"
+          class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Icon icon="ph:wallet-bold" class="w-4 h-4" />
-          Connect
+          <template v-if="isConnecting">
+            <Icon icon="eos-icons:loading" class="w-4 h-4 animate-spin" />
+            Connecting
+          </template>
+          <template v-else>
+            <Icon icon="ph:wallet-bold" class="w-4 h-4" />
+            Connect
+          </template>
         </button>
         <div v-else class="flex items-center gap-2">
            <span class="text-gray-600 dark:text-gray-300 text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">

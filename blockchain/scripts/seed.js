@@ -10,32 +10,39 @@ async function main() {
     console.log("🌱 SEEDING DATA WITH ACCOUNT:", deployer.address);
     console.log("-------------------------------------------------");
 
-    // --- 1. DEPLOYMENT ---
-    console.log("\n[1/4] 🚀 DEPLOYING CONTRACTS...");
+    // --- 1. LOAD DEPLOYED CONTRACTS ---
+    console.log("\n[1/4] 📥 LOADING DEPLOYED CONTRACTS...");
 
-    // Deploy MockToken
+    const fs = require("fs");
+    const path = require("path");
+    const addressesPath = path.join(__dirname, "../deployed_addresses.json");
+
+    if (!fs.existsSync(addressesPath)) {
+        throw new Error("❌ deployed_addresses.json not found. Please run 'npm run deploy' first.");
+    }
+
+    const addresses = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
+    const lendingPoolAddress = addresses.lendingPool;
+    const mockTokenAddress = addresses.mockToken;
+
+    console.log("  📍 Loaded LendingPool:", lendingPoolAddress);
+    console.log("  📍 Loaded MockToken:", mockTokenAddress);
+
     const MockToken = await hre.ethers.getContractFactory("MockToken");
-    const mockToken = await MockToken.deploy();
-    await mockToken.waitForDeployment();
-    const mockTokenAddress = await mockToken.getAddress();
-    console.log("  ✅ MockToken deployed to:", mockTokenAddress);
+    const mockToken = MockToken.attach(mockTokenAddress);
 
-    // Deploy LendingPool
-    // Initial ETH Price: 2000 MockTokens per 1 ETH
-    const ethPrice = 2000;
     const LendingPool = await hre.ethers.getContractFactory("LendingPool");
-    const lendingPool = await LendingPool.deploy(mockTokenAddress, ethPrice);
-    await lendingPool.waitForDeployment();
-    const lendingPoolAddress = await lendingPool.getAddress();
-    console.log("  ✅ LendingPool deployed to:", lendingPoolAddress);
+    const lendingPool = LendingPool.attach(lendingPoolAddress);
+
 
     // --- 2. SETUP ---
     console.log("\n[2/4] ⚙️  SETUP INITIAL STATE...");
 
     // Fund the pool so it has tokens to lend
+    // Note: fundPool fails if allowance is already used, check allowance first?
+    // Or just approve again.
     const fundAmount = hre.ethers.parseEther("10000"); // Fund with 10,000 tokens
 
-    // Deployer has all tokens initially, define allowance
     await mockToken.approve(lendingPoolAddress, fundAmount);
     await lendingPool.fundPool(fundAmount);
     console.log(`  🔹 LendingPool funded with ${hre.ethers.formatEther(fundAmount)} MCK`);
