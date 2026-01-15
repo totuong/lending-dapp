@@ -40,7 +40,8 @@ onMounted(async () => {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #111827; /* gray-900 */
+  background-color: #111827;
+  /* gray-900 */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -50,14 +51,20 @@ onMounted(async () => {
 .loader {
   width: 48px;
   height: 48px;
-  border: 5px solid #3b82f6; /* blue-500 */
+  border: 5px solid #3b82f6;
+  /* blue-500 */
   border-bottom-color: transparent;
   border-radius: 50%;
   animation: rotation 1s linear infinite;
 }
 
 @keyframes rotation {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

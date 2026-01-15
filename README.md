@@ -5,7 +5,7 @@ A decentralized lending application connecting lenders and borrowers using Ether
 ## Project Structure
 
 *   **`blockchain/`**: Contains Solidity smart contracts, tests, and deployment scripts.
-*   **`web-ui/`**: A modern web dashboard built with Nuxt 3, Tailwind CSS, and Ethers.js.
+*   **`web-ui/`**: A modern web dashboard built with Nuxt 3, Tailwind CSS, PrimeVue, Chart.js, and Ethers.js.
 
 ## Prerequisites
 
@@ -36,7 +36,7 @@ Run a local blockchain node and deploy contracts.
 4.  Open a **new** terminal window and deploy the contracts:
     ```bash
     cd blockchain
-    npm run deploy -- --network localhost
+    npm run deploy
     ```
     *Note: Copy the `LendingPool` contract address printed in the console.*
 
@@ -117,7 +117,13 @@ Run the user interface.
 
 *   **Deposit**: Deposit ETH into the pool to earn interest (mock logic).
 *   **Borrow**: Borrow tokens (MCK) using your ETH as collateral (80% LTV).
-*   **Dashboard**: Real-time view of your deposits and wallet status.
+*   **Dashboard**: Real-time view of deposits, wallet status, and Health Factor.
+*   **My Assets**: Detailed breakdown of supplied and borrowed positions.
+*   **Guide**: Integrated user documentation and feature explanations.
+*   **Settings**: Dark mode toggle and multi-language support (English/Vietnamese).
+*   **Repay**: Repay borrowed tokens to recover collateral and improve Health Factor.
+*   **Liquidation**: Visual indicator for undercollateralized positions (Health Factor < 1.0).
+*   **Withdraw**: Withdraw supplied assets when they are not locked as collateral.
 
 ## Development Accounts (Hardhat Localhost)
 

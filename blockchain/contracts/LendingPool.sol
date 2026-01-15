@@ -152,4 +152,78 @@ contract LendingPool is ReentrancyGuard, Ownable {
         (bool success, ) = msg.sender.call{value: totalCollateralToSeize}("");
         require(success, "ETH transfer failed");
     }
+
+    /**
+     * @dev User withdraws ETH from their deposit.
+     * @param amount The amount of ETH to withdraw.
+     */
+    function withdraw(uint256 amount) external nonReentrant {
+        require(amount > 0, "Amount must be greater than 0");
+        require(deposits[msg.sender] >= amount, "Insufficient balance");
+
+        // Check Health Factor after withdrawal
+        uint256 totalDebt = loans[msg.sender];
+        if (totalDebt > 0) {
+            uint256 remainingCollateral = deposits[msg.sender] - amount;
+            uint256 collateralValueInToken = remainingCollateral * ethPrice;
+            uint256 maxBorrow = (collateralValueInToken * 80) / 100;
+            
+            require(totalDebt <= maxBorrow, "Cannot withdraw: Health Factor would depend drop below 1");
+        }
+
+        deposits[msg.sender] -= amount;
+        
+        emit Withdraw(msg.sender, amount);
+
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "ETH transfer failed");
+    }
+
+    event Withdraw(address indexed user, uint256 amount);
+
+    // --- Supply Liquidity Feature ---
+    mapping(address => uint256) public suppliedTokens;
+    event Supply(address indexed user, uint256 amount);
+    event WithdrawSupply(address indexed user, uint256 amount);
+
+    /**
+     * @dev User supplies Lending Tokens (MCK) to the pool.
+     * @param amount The amount of tokens to supply.
+     */
+    function supply(uint256 amount) external nonReentrant {
+        require(amount > 0, "Amount must be greater than 0");
+        
+        // Transfer tokens from user to contract
+        require(
+            lendingToken.transferFrom(msg.sender, address(this), amount),
+            "Transfer failed"
+        );
+
+        suppliedTokens[msg.sender] += amount;
+        emit Supply(msg.sender, amount);
+    }
+
+    /**
+     * @dev User withdraws supplied Lending Tokens.
+     * @param amount The amount of tokens to withdraw.
+     */
+    function withdrawSupply(uint256 amount) external nonReentrant {
+        require(amount > 0, "Amount must be greater than 0");
+        require(suppliedTokens[msg.sender] >= amount, "Insufficient supply balance");
+        
+        // Check if there is enough liquidity (liquidity might be borrowed)
+        require(
+            lendingToken.balanceOf(address(this)) >= amount,
+            "Insufficient pool liquidity to withdraw"
+        );
+
+        suppliedTokens[msg.sender] -= amount;
+
+        require(
+            lendingToken.transfer(msg.sender, amount),
+            "Transfer failed"
+        );
+
+        emit WithdrawSupply(msg.sender, amount);
+    }
 }

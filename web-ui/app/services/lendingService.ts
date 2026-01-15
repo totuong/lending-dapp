@@ -7,7 +7,7 @@ import { toRaw } from 'vue';
 const LENDING_POOL_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS as string;
 
 // ABI for the LendingPool contract
-import LendingPoolArtifact from '../utils/abis/LendingPool.json';
+import LendingPoolArtifact from '../../utils/abis/LendingPool.json';
 const LENDING_POOL_ABI = LendingPoolArtifact.abi;
 
 const getContract = (signer: any) => {
@@ -35,7 +35,7 @@ export const lendingService = {
     async depositETH(signer: any, amount: string) {
         try {
             const contract = getContract(signer);
-            const tx = await contract.deposit({ value: ethers.parseEther(amount) });
+            const tx = await (contract as any).deposit({ value: ethers.parseEther(amount) });
             await tx.wait();
             return { success: true, data: tx.hash };
         } catch (error: any) {
@@ -56,14 +56,14 @@ export const lendingService = {
             ];
 
             // 1. Fetch current pool state
-            const ethPrice = await contract.ethPrice();
-            const deposits = await contract.deposits(userAddress);
-            const currentLoan = await contract.loans(userAddress);
+            const ethPrice = await (contract as any).ethPrice();
+            const deposits = await (contract as any).deposits(userAddress);
+            const currentLoan = await (contract as any).loans(userAddress);
 
             // Get Pool Liquidity
-            const tokenAddress = await contract.lendingToken();
+            const tokenAddress = await (contract as any).lendingToken();
             const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, rawSigner);
-            const poolBalance = await tokenContract.balanceOf(LENDING_POOL_ADDRESS);
+            const poolBalance = await (tokenContract as any).balanceOf(LENDING_POOL_ADDRESS);
 
             // 2. Calculate values (using BigInt for precision)
             const ethPriceBI = BigInt(ethPrice);
@@ -97,7 +97,7 @@ export const lendingService = {
             }
 
             // 4. Send Transaction
-            const tx = await contract.borrow(requestAmountBI);
+            const tx = await (contract as any).borrow(requestAmountBI);
             await tx.wait();
             return { success: true, data: tx.hash };
         } catch (error: any) {
@@ -117,6 +117,47 @@ export const lendingService = {
         }
     },
 
+    async withdrawETH(signer: any, amount: string) {
+        try {
+            const contract = getContract(signer);
+            const rawSigner = toRaw(signer);
+            const address = await rawSigner.getAddress();
+            
+            // 1. Pre-Check: On-chain Balance
+            const currentDepositBI = await (contract as any).deposits(address);
+            const requestAmountBI = ethers.parseEther(amount);
+
+            if (currentDepositBI < requestAmountBI) {
+                 return {
+                    success: false,
+                    error: `Insufficient on-chain balance. You have ${ethers.formatEther(currentDepositBI)} ETH deposited, but are trying to withdraw ${amount} ETH.`
+                 }
+            }
+
+            // Cast to any to avoid TS error until ABI is updated
+            const tx = await (contract as any).withdraw(requestAmountBI);
+            await tx.wait();
+            return { success: true, data: tx.hash };
+        } catch (error: any) {
+            console.error("Withdraw Error:", error);
+            return { success: false, error: error.message || "Withdraw failed" };
+        }
+    },
+
+    async getWalletBalance(signer: any) {
+        try {
+            if (!signer) return { success: false, error: "Wallet not connected" };
+            const rawSigner = toRaw(signer);
+            const address = await rawSigner.getAddress();
+            const balance = await rawSigner.provider.getBalance(address);
+            return { success: true, data: ethers.formatEther(balance) };
+        } catch (error: any) {
+            console.error("Get Wallet Balance Error:", error);
+            return { success: false, error: error.message || "Failed to fetch wallet balance" };
+        }
+    },
+
+    // Gets the amount of ETH deposited in the contract
     async getUserBalance(signer: any) {
         try {
             if (!signer) return { success: false, error: "Wallet not connected" };
@@ -128,7 +169,7 @@ export const lendingService = {
             console.log("Contract:", contract);
 
             // Get deposited balance
-            const balanceWei = await contract.deposits(address);
+            const balanceWei = await (contract as any).deposits(address);
 
             return { success: true, data: ethers.formatEther(balanceWei) };
         } catch (error: any) {
@@ -145,7 +186,7 @@ export const lendingService = {
             const address = await toRaw(signer).getAddress();
 
             // Get borrowed balance - 'loans' mapping in Solidity
-            const borrowedWei = await contract.loans(address);
+            const borrowedWei = await (contract as any).loans(address);
 
             return { success: true, data: ethers.formatEther(borrowedWei) };
         } catch (error: any) {
@@ -168,27 +209,27 @@ export const lendingService = {
                 "function allowance(address, address) view returns (uint256)"
             ];
 
-            const tokenAddress = await contract.lendingToken();
+            const tokenAddress = await (contract as any).lendingToken();
             const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, rawSigner);
 
             const amountBI = ethers.parseEther(amount);
 
             // 1. Check Balance
-            const balance = await tokenContract.balanceOf(userAddress);
+            const balance = await (tokenContract as any).balanceOf(userAddress);
             if (balance < amountBI) {
                 return { success: false, error: "Insufficient MockToken balance to repay" };
             }
 
             // 2. Check Allowance
-            const allowance = await tokenContract.allowance(userAddress, LENDING_POOL_ADDRESS);
+            const allowance = await (tokenContract as any).allowance(userAddress, LENDING_POOL_ADDRESS);
             if (allowance < amountBI) {
                 console.log("Approving tokens for repay...");
-                const txApprove = await tokenContract.approve(LENDING_POOL_ADDRESS, amountBI);
+                const txApprove = await (tokenContract as any).approve(LENDING_POOL_ADDRESS, amountBI);
                 await txApprove.wait();
             }
 
             // 3. Repay
-            const tx = await contract.repay(amountBI);
+            const tx = await (contract as any).repay(amountBI);
             await tx.wait();
 
             return { success: true, data: tx.hash };
@@ -216,27 +257,27 @@ export const lendingService = {
             ];
 
             // 1. Check debt amount
-            const loanAmount = await contract.loans(borrowerAddress);
+            const loanAmount = await (contract as any).loans(borrowerAddress);
             if (loanAmount <= 0) throw new Error("User has no debt");
 
             // 2. Check liquidator Balance
-            const tokenAddress = await contract.lendingToken();
+            const tokenAddress = await (contract as any).lendingToken();
             const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, rawSigner);
-            const balance = await tokenContract.balanceOf(userAddress);
+            const balance = await (tokenContract as any).balanceOf(userAddress);
 
             if (balance < loanAmount) {
                 return { success: false, error: "Insufficient MockToken balance to liquidate" };
             }
 
             // 3. Check Allowance
-            const allowance = await tokenContract.allowance(userAddress, LENDING_POOL_ADDRESS);
+            const allowance = await (tokenContract as any).allowance(userAddress, LENDING_POOL_ADDRESS);
             if (allowance < loanAmount) {
-                const txApprove = await tokenContract.approve(LENDING_POOL_ADDRESS, loanAmount);
+                const txApprove = await (tokenContract as any).approve(LENDING_POOL_ADDRESS, loanAmount);
                 await txApprove.wait();
             }
 
             // 4. Liquidate
-            const tx = await contract.liquidate(borrowerAddress);
+            const tx = await (contract as any).liquidate(borrowerAddress);
             await tx.wait();
 
             return { success: true, data: tx.hash };
@@ -246,6 +287,26 @@ export const lendingService = {
         }
     },
 
+    async getWalletTokenBalance(signer: any) {
+        try {
+            if (!signer) return { success: false, error: "Wallet not connected" };
+            const rawSigner = toRaw(signer);
+            const userAddress = await rawSigner.getAddress();
+            const contract = getContract(rawSigner);
+            
+            // ERC20 Minimal ABI
+            const ERC20_ABI = ["function balanceOf(address) view returns (uint256)"];
+            const tokenAddress = await (contract as any).lendingToken();
+            const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, rawSigner);
+
+            const balance = await (tokenContract as any).balanceOf(userAddress);
+            return { success: true, data: ethers.formatEther(balance) };
+        } catch (error: any) {
+            console.error("Get Wallet Token Balance Error:", error);
+            return { success: false, error: error.message };
+        }
+    },
+    
     async getBorrowersData(signer: any) {
         try {
             const rawSigner = toRaw(signer);
@@ -287,5 +348,130 @@ export const lendingService = {
             console.error("Fetch Borrowers Error:", error);
             return { success: false, error: error.message };
         }
+    },
+
+    // --- Supply Liquidity (ERC20) ---
+    async supplyToken(signer: any, amount: string) {
+        try {
+            const contract = getContract(signer);
+            const rawSigner = toRaw(signer);
+            const userAddress = await rawSigner.getAddress();
+
+            // ERC20 Minimal ABI
+            const ERC20_ABI = [
+                "function balanceOf(address) view returns (uint256)",
+                "function approve(address, uint256) returns (bool)",
+                "function allowance(address, address) view returns (uint256)"
+            ];
+
+            const tokenAddress = await (contract as any).lendingToken();
+            const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, rawSigner);
+
+            const amountBI = ethers.parseEther(amount);
+
+            // 1. Check Token Balance
+            const balance = await (tokenContract as any).balanceOf(userAddress);
+            if (balance < amountBI) {
+                return { success: false, error: "Insufficient MockToken balance to supply" };
+            }
+
+            // 2. Check Allowance
+            const allowance = await (tokenContract as any).allowance(userAddress, LENDING_POOL_ADDRESS);
+            if (allowance < amountBI) {
+                console.log("Approving tokens for supply...");
+                const txApprove = await (tokenContract as any).approve(LENDING_POOL_ADDRESS, amountBI);
+                await txApprove.wait();
+            }
+
+            // 3. Supply
+            const tx = await (contract as any).supply(amountBI);
+            await tx.wait();
+
+            return { success: true, data: tx.hash };
+        } catch (error: any) {
+            console.error("Supply Error:", error);
+            if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
+                return { success: false, error: "Transaction rejected by user." };
+            }
+            return { success: false, error: error.message || "Supply failed" };
+        }
+    },
+
+    async withdrawSupplyToken(signer: any, amount: string) {
+        try {
+            const contract = getContract(signer);
+            const amountBI = ethers.parseEther(amount);
+
+            const tx = await (contract as any).withdrawSupply(amountBI);
+            await tx.wait();
+            return { success: true, data: tx.hash };
+        } catch (error: any) {
+            console.error("Withdraw Supply Error:", error);
+            if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
+                 return { success: false, error: "Transaction rejected by user." };
+            }
+            return { success: false, error: error.message || "Withdraw supply failed" };
+        }
+    },
+
+    async getUserSupplyTokenBalance(signer: any) {
+        try {
+             if (!signer) return { success: false, error: "Wallet not connected" };
+             const contract = getContract(signer);
+             const address = await toRaw(signer).getAddress();
+             
+             // Check if suppliedTokens exists in ABI (it might not if not re-compiled yet, but accessing via ethers works if dynamic)
+             // However, types might complain if using a typed contract which we are not (using as any).
+             if (!(contract as any).suppliedTokens) {
+                 return { success: true, data: "0.0" };
+             }
+
+             const supplyWei = await (contract as any).suppliedTokens(address);
+             return { success: true, data: ethers.formatEther(supplyWei) };
+        } catch (error: any) {
+             console.error("Get User Supply Token Balance Error:", error);
+             return { success: false, error: error.message || "Failed to fetch supply token balance" };
+        }
+    },
+
+    async getPoolETHBalance(signer: any) {
+        try {
+            const rawSigner = toRaw(signer);
+            const provider = rawSigner.provider;
+            if (!provider) return { success: false, error: "Provider not found" };
+            
+            const balance = await provider.getBalance(LENDING_POOL_ADDRESS);
+            return { success: true, data: ethers.formatEther(balance) };
+        } catch (error: any) {
+            console.error("Get Pool ETH Balance Error:", error);
+            return { success: false, error: error.message || "Failed to fetch pool ETH balance" };
+        }
+    },
+
+    async getETHPrice(signer: any) {
+        try {
+            const rawSigner = toRaw(signer);
+            const contract = getContract(rawSigner);
+            const price = await (contract as any).ethPrice();
+            return { success: true, data: price.toString() };
+        } catch (error: any) {
+            console.error("Get ETH Price Error:", error);
+            return { success: false, error: error.message || "Failed to fetch ETH price" };
+        }
+    },
+
+    async updateETHPrice(signer: any, newPrice: string) {
+        try {
+            const rawSigner = toRaw(signer);
+            const contract = getContract(rawSigner);
+            
+            const tx = await (contract as any).updatePrice(newPrice);
+            await tx.wait();
+            return { success: true, data: tx.hash };
+        } catch (error: any) {
+            console.error("Update ETH Price Error:", error);
+            return { success: false, error: error.message || "Update price failed" };
+        }
     }
 };
+

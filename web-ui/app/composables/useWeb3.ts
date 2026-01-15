@@ -109,7 +109,10 @@ export const useWeb3 = () => {
         } else {
             // ... (MetaMask check code) ...
             console.warn("MetaMask not installed");
-            toast.add({ severity: 'warn', summary: 'Wallet Missing', detail: 'MetaMask not found', life: 3000 });
+            toast.add({ severity: 'warn', summary: 'Wallet Missing', detail: 'MetaMask not found. Redirecting to download...', life: 3000 });
+            setTimeout(() => {
+                window.open('https://metamask.io/download/', '_blank');
+            }, 1000);
         }
     };
 

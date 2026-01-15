@@ -4,8 +4,8 @@
     "description": "Smart contracts for Lending DApp",
     "scripts": {
         "test": "hardhat test",
-        "deploy": "hardhat run scripts/deploy.js",
-        "seed": "hardhat run scripts/seed.js",
+        "deploy": "hardhat run scripts/deploy.js --network localhost",
+        "seed": "hardhat run scripts/seed.js --network localhost",
         "deploy-full": "npx hardhat run scripts/deploy.js --network localhost && npx hardhat run scripts/seed.js --network localhost"
     },
     "devDependencies": {

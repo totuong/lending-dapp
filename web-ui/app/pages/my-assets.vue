@@ -4,6 +4,9 @@ import { Icon } from '@iconify/vue';
 import Sidebar from '../components/Sidebar.vue';
 import { useWeb3 } from '../composables/useWeb3';
 import { lendingService } from '../services/lendingService';
+import { useToast } from 'primevue/usetoast';
+
+const toast = useToast();
 
 const { account, isConnected, signer } = useWeb3();
 
@@ -62,7 +65,11 @@ const fetchUserAssets = async () => {
         // --- 3. Calculate Totals (Assuming 1 ETH = $2000, 1 TOK = $1) ---
         // Contract logic uses 2000 MockTokens = 1 ETH. 
         // If we assume MockToken is $1, then ETH is $2000.
-        const ethPrice = 2000;
+        let ethPrice = 2000;
+        const priceRes = await lendingService.getETHPrice(signer.value);
+        if (priceRes.success && priceRes.data) {
+            ethPrice = Number(priceRes.data);
+        }
         const tokenPrice = 1;
 
         totalSupplied.value = parseFloat((ethBalance * ethPrice).toFixed(2));
@@ -102,15 +109,57 @@ const healthPercentage = computed(() => {
   return Math.min(Math.max((healthFactor.value - 1) * 100, 5), 100) + '%'; 
 });
 
+const visibleActionDialog = ref(false);
+const actionType = ref<'withdraw' | 'repay'>('withdraw');
+const selectedActionAsset = ref<any>(null);
+const actionAmount = ref<number | null>(null);
+const isProcessing = ref(false);
+
 const handleWithdraw = (asset: any) => {
-    console.log("Withdraw", asset);
-    // TODO: Implement Withdraw
-}
+    selectedActionAsset.value = asset;
+    actionType.value = 'withdraw';
+    actionAmount.value = null;
+    visibleActionDialog.value = true;
+};
 
 const handleRepay = (asset: any) => {
-    console.log("Repay", asset);
-    // TODO: Implement Repay
-}
+    selectedActionAsset.value = asset;
+    actionType.value = 'repay';
+    actionAmount.value = null;
+    visibleActionDialog.value = true;
+};
+
+const submitAction = async () => {
+    if (!actionAmount.value || !signer.value || !selectedActionAsset.value) return;
+    
+    isProcessing.value = true;
+    try {
+        let res;
+        const amountStr = String(actionAmount.value);
+        
+        if (actionType.value === 'withdraw') {
+             // For now assume ETH withdraw since we only have ETH supply logic in fetchUserAssets 
+             // Logic: withdrawETH(amount)
+             res = await lendingService.withdrawETH(signer.value, amountStr);
+        } else {
+             // For now assume Token repay
+             // Logic: repayToken(amount)
+             res = await lendingService.repayToken(signer.value, amountStr);
+        }
+
+        if (res.success) {
+            toast.add({ severity: 'success', summary: 'Success', detail: `${actionType.value === 'withdraw' ? 'Withdrawal' : 'Repayment'} successful!`, life: 3000 });
+            visibleActionDialog.value = false;
+            await fetchUserAssets();
+        } else {
+             toast.add({ severity: 'error', summary: 'Error', detail: res.error, life: 5000 });
+        }
+    } catch (e:any) {
+        toast.add({ severity: 'error', summary: 'Error', detail: e.message, life: 5000 });
+    } finally {
+        isProcessing.value = false;
+    }
+};
 
 onMounted(() => {
     fetchUserAssets();
@@ -257,5 +306,35 @@ watch(isConnected, (newVal) => {
          </div>
       </div>
     </main>
+
+    <!-- Withdraw/Repay Dialog -->
+    <Dialog v-model:visible="visibleActionDialog" modal :header="actionType === 'withdraw' ? 'Withdraw Asset' : 'Repay Debt'" :style="{ width: '30rem' }">
+        <div v-if="selectedActionAsset" class="space-y-4">
+            <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center gap-4">
+                <Icon :icon="selectedActionAsset.icon" class="w-10 h-10" :class="actionType === 'withdraw' ? 'text-blue-500' : 'text-purple-500'" />
+                <div>
+                    <h4 class="font-bold text-lg">{{ selectedActionAsset.name }}</h4>
+                    <p class="text-sm text-gray-500">{{ selectedActionAsset.symbol }}</p>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount</label>
+                <InputNumber v-model="actionAmount" :maxFractionDigits="18" placeholder="0.00" class="w-full" inputClass="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-3" />
+                <p class="text-xs text-gray-500 mt-1 text-right">
+                    Available: <span class="font-bold font-mono">{{ actionType === 'withdraw' ? selectedActionAsset.balance : selectedActionAsset.debt }}</span>
+                </p>
+            </div>
+
+            <div class="flex gap-3 pt-4">
+                <Button label="Cancel" outlined class="flex-1" @click="visibleActionDialog = false" />
+                <Button :label="actionType === 'withdraw' ? 'Withdraw' : 'Repay'" :loading="isProcessing" class="flex-1" 
+                    :class="actionType === 'withdraw' ? '!bg-blue-600 hover:!bg-blue-700 !border-none' : '!bg-purple-600 hover:!bg-purple-700 !border-none'"
+                    @click="submitAction"
+                    :disabled="!actionAmount"
+                />
+            </div>
+        </div>
+    </Dialog>
   </div>
 </template>
