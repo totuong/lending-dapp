@@ -164,6 +164,11 @@ export const useWeb3 = () => {
         }
     };
 
+    const isAdmin = computed(() => {
+        const ADMIN_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+        return account.value && account.value.toLowerCase() === ADMIN_ADDRESS.toLowerCase();
+    });
+
     return {
         account,
         isConnected,
@@ -172,6 +177,7 @@ export const useWeb3 = () => {
         connectWallet,
         disconnect,
         initWallet,
-        isConnecting
+        isConnecting,
+        isAdmin
     };
 };

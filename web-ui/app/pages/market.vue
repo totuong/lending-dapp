@@ -19,7 +19,7 @@ onMounted(async () => {
 });
 
 // Price Admin Logic
-const { signer } = useWeb3();
+const { signer, isAdmin } = useWeb3();
 const toast = useToast();
 const currentEthPrice = ref('0');
 const newEthPrice = ref<number | null>(null);
@@ -71,7 +71,7 @@ const handleUpdatePrice = async () => {
       </div>
 
       <!-- Admin Price Oracle -->
-      <div v-if="!isLoading" class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
+      <div v-if="!isLoading && isAdmin" class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
              <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
                  <Icon icon="mdi:tag-multiple" class="text-orange-500" />
                  Price Oracle (Admin)
@@ -89,11 +89,6 @@ const handleUpdatePrice = async () => {
                       </div>
                  </div>
              </div>
-      </div>
-      <div v-else class="grid lg:grid-cols-2 gap-8 mb-8">
-          <!-- Skeletons for Charts -->
-          <Skeleton height="300px" borderRadius="16px" class="!bg-gray-200 dark:!bg-gray-700" />
-          <Skeleton height="300px" borderRadius="16px" class="!bg-gray-200 dark:!bg-gray-700" />
       </div>
       
       <!-- Market Table -->

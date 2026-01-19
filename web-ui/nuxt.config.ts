@@ -29,5 +29,19 @@ export default defineNuxtConfig({
   tailwindcss: {
     exposeConfig: true,
     viewer: true
+  },
+  app: {
+    head: {
+      title: 'LendSphere - DeFi Protocol',
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1',
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }
+      ],
+      meta: [
+        { name: 'description', content: 'Next-Gen Decentralized Lending & Borrowing Protocol' },
+        { name: 'theme-color', content: '#3b82f6' }
+      ]
+    }
   }
 })

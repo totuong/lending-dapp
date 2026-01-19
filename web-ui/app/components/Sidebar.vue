@@ -4,7 +4,7 @@ import { Icon } from '@iconify/vue';
 import { useWeb3 } from '../composables/useWeb3';
 import { useTheme } from '../composables/useTheme';
 
-const { disconnect, account } = useWeb3();
+const { disconnect, account, isAdmin } = useWeb3();
 const { isDark, toggleTheme } = useTheme();
 const isCollapsed = ref(false);
 </script>
@@ -58,7 +58,7 @@ const isCollapsed = ref(false);
         <Icon icon="mdi:wallet" class="w-5 h-5 flex-shrink-0" />
         <span v-if="!isCollapsed">My Assets</span>
       </NuxtLink>
-      <ClientOnly>
+      <ClientOnly v-if="isAdmin">
         <NuxtLink to="/liquidation"
           active-class="bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
           class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
@@ -90,7 +90,7 @@ const isCollapsed = ref(false);
           {{ account?.slice(2, 4) }}
         </div>
         <div v-if="!isCollapsed" class="overflow-hidden">
-          <p class="text-sm font-bold text-gray-900 dark:text-white truncate w-24" :title="account">{{ account }}</p>
+          <p class="text-sm font-bold text-gray-900 dark:text-white truncate w-24" :title="account || undefined">{{ account }}</p>
           <p class="text-xs text-green-600 dark:text-green-400">Connected</p>
         </div>
       </div>

@@ -9,7 +9,7 @@ import { lendingService } from '../services/lendingService';
 import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
-const { disconnect, account, isConnected, signer } = useWeb3();
+const { disconnect, account, isConnected, signer, isAdmin } = useWeb3();
 
 // --- Lazy Load Charts ---
 // Only load these components when they are actually rendered (Market Tab)
@@ -24,6 +24,8 @@ const poolETHBalance = ref('0');
 const netWorth = ref('0');
 const isLoading = ref(false);
 const statusMessage = ref('');
+const newEthPrice = ref<number | null>(null);
+const isUpdatingPrice = ref(false);
 
 const isDataLoading = ref(true);
 const isRepayMode = ref(false);
@@ -246,6 +248,24 @@ const handleWithdraw = async () => {
   }
 };
 
+
+
+const handleUpdatePrice = async () => {
+  if (!newEthPrice.value || !signer.value) return;
+  isUpdatingPrice.value = true;
+  
+  const res = await lendingService.updateETHPrice(signer.value, String(newEthPrice.value));
+  
+  isUpdatingPrice.value = false;
+  if (res.success) {
+    toast.add({ severity: 'success', summary: 'Price Updated', detail: 'ETH Price updated successfully', life: 3000 });
+    newEthPrice.value = null;
+    await fetchBalance();
+  } else {
+    toast.add({ severity: 'error', summary: 'Update Failed', detail: res.error, life: 5000 });
+  }
+};
+
 const setMaxDeposit = () => {
   if (isWithdrawMode.value) {
     if (selectedSupplyAsset.value === 'ETH' && userSupplyBalance.value) {
@@ -301,7 +321,7 @@ const openDetails = (asset: any) => {
       <!-- === TAB: OVERVIEW === -->
       <div v-if="currentTab === 'overview'" class="space-y-8 animate-fade-in">
         <!-- Quick Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" :class="isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'">
           <div
             class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
             <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Net Worth</p>
@@ -329,8 +349,8 @@ const openDetails = (asset: any) => {
               Number(userBorrowBalance).toFixed(2) }} MCK</p>
           </div>
 
-          <!-- Pool Liquidity Card -->
-          <div
+          <!-- Pool Liquidity Card (Admin Only) -->
+          <div v-if="isAdmin"
             class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
             <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Pool Liquidity</p>
             <div v-if="isDataLoading" class="h-8 w-32">
@@ -340,6 +360,8 @@ const openDetails = (asset: any) => {
               {{ Number(poolETHBalance).toFixed(2) }} <span class="text-lg text-gray-400">ETH</span>
             </p>
           </div>
+
+
         </div>
 
         <!-- Main Actions Area -->
