@@ -1,99 +1,156 @@
 const hre = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
-    // Get signers (accounts)
-    // deployer: deploys contracts and funds the pool
-    // user1, user2: simulate active users
-    const [deployer, user1, user2] = await hre.ethers.getSigners();
+    // 1. GET ACCOUNTS
+    // We expect Hardhat to provide ~20 accounts by default
+    const signers = await hre.ethers.getSigners();
+    const deployer = signers[0];
+
+    // Roles
+    const whale = deployer;                    // Account 0: Provides liquidity
+    const safeBorrowers = signers.slice(1, 4);  // Accounts 1-3: Safe borrowers (HF > 1.5)
+    const riskyBorrowers = signers.slice(4, 6); // Accounts 4-5: Risky borrowers (HF ~ 1.0 - 1.1)
+    const suppliers = signers.slice(6, 8);      // Accounts 6-7: Supply Tokens (not ETH)
+    const activeTrader = signers[8];            // Account 8: Do everything
 
     console.log("-------------------------------------------------");
-    console.log("🌱 SEEDING DATA WITH ACCOUNT:", deployer.address);
+    console.log("🌱 ENHANCED SEEDING STARTED");
     console.log("-------------------------------------------------");
+    console.log("  Whale:", whale.address);
+    console.log("  Safe Borrowers:", safeBorrowers.map(s => s.address));
+    console.log("  Risky Borrowers:", riskyBorrowers.map(s => s.address));
+    console.log("  Suppliers:", suppliers.map(s => s.address));
+    console.log("  Active Trader:", activeTrader.address);
 
-    // --- 1. LOAD DEPLOYED CONTRACTS ---
-    console.log("\n[1/4] 📥 LOADING DEPLOYED CONTRACTS...");
-
-    const fs = require("fs");
-    const path = require("path");
+    // 2. LOAD CONTRACTS
+    console.log("\n[1/5] 📥 LOADING CONTRACTS...");
     const addressesPath = path.join(__dirname, "../deployed_addresses.json");
-
     if (!fs.existsSync(addressesPath)) {
-        throw new Error("❌ deployed_addresses.json not found. Please run 'npm run deploy' first.");
+        throw new Error("❌ deployed_addresses.json not found. Run 'npm run deploy' first.");
     }
-
     const addresses = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
-    const lendingPoolAddress = addresses.lendingPool;
-    const mockTokenAddress = addresses.mockToken;
-
-    console.log("  📍 Loaded LendingPool:", lendingPoolAddress);
-    console.log("  📍 Loaded MockToken:", mockTokenAddress);
 
     const MockToken = await hre.ethers.getContractFactory("MockToken");
-    const mockToken = MockToken.attach(mockTokenAddress);
+    const mockToken = MockToken.attach(addresses.mockToken); // MCK
 
     const LendingPool = await hre.ethers.getContractFactory("LendingPool");
-    const lendingPool = LendingPool.attach(lendingPoolAddress);
+    const lendingPool = LendingPool.attach(addresses.lendingPool);
+
+    console.log("  📍 LendingPool:", lendingPool.target);
+    console.log("  📍 MockToken:", mockToken.target);
+
+    // 3. WHALE FUNDING (Initial Liquidity)
+    console.log("\n[2/5] 🐋 WHALE FUNDING POOL...");
+    const fundAmount = hre.ethers.parseEther("50000"); // 50,000 MCK
+
+    // Check allowance first to avoid errors if re-running without redeploy
+    const allowance = await mockToken.allowance(whale.address, lendingPool.target);
+    if (allowance < fundAmount) {
+        await mockToken.connect(whale).approve(lendingPool.target, fundAmount);
+    }
+
+    // Check if checks/balances allow funding
+    try {
+        await lendingPool.connect(whale).fundPool(fundAmount);
+        console.log(`  ✅ Pool funded with ${hre.ethers.formatEther(fundAmount)} MCK`);
+    } catch (e) {
+        console.log("  ⚠️  Pool might already be funded or error:", e.message);
+    }
+
+    // Distribute tokens to Suppliers and Active Trader so they can use them
+    console.log("  💸 Distributing tokens to Suppliers & Traders...");
+    const distributeAmount = hre.ethers.parseEther("5000");
+    for (const supplier of [...suppliers, activeTrader]) {
+        await mockToken.connect(whale).transfer(supplier.address, distributeAmount);
+        console.log(`    -> Sent 5000 MCK to ${supplier.address}`);
+    }
 
 
-    // --- 2. SETUP ---
-    console.log("\n[2/4] ⚙️  SETUP INITIAL STATE...");
+    // 4. SCENARIO EXECUTION
+    console.log("\n[3/5] 🎬 EXECUTING SCENARIOS...");
 
-    // Fund the pool so it has tokens to lend
-    // Note: fundPool fails if allowance is already used, check allowance first?
-    // Or just approve again.
-    const fundAmount = hre.ethers.parseEther("10000"); // Fund with 10,000 tokens
+    // --- Scenario A: Safe Borrowers ---
+    console.log("\n  🅰️  SCENARIO: Safe Borrowers");
+    for (const user of safeBorrowers) {
+        // Deposit 10 ETH
+        const depositAmt = hre.ethers.parseEther("10");
+        console.log(`    👤 ${user.address} depositing 10 ETH...`);
+        await lendingPool.connect(user).deposit({ value: depositAmt });
 
-    await mockToken.approve(lendingPoolAddress, fundAmount);
-    await lendingPool.fundPool(fundAmount);
-    console.log(`  🔹 LendingPool funded with ${hre.ethers.formatEther(fundAmount)} MCK`);
+        // Borrow conservative amount (e.g., 20% LTV)
+        // 10 ETH * 2000 = 20,000 collateral. Max borrow 16,000. Borrow 4,000.
+        const borrowAmt = hre.ethers.parseEther("4000");
+        console.log(`    👤 ${user.address} borrowing 4,000 MCK...`);
+        await lendingPool.connect(user).borrow(borrowAmt);
+    }
 
-    // --- 3. SEEDING USER DATA ---
-    console.log("\n[3/4] 👥 SEEDING USER INTERACTIONS...");
+    // --- Scenario B: Risky Borrowers ---
+    console.log("\n  🅱️  SCENARIO: Risky Borrowers (Near Liquidation)");
+    for (const user of riskyBorrowers) {
+        // Deposit 5 ETH
+        const depositAmt = hre.ethers.parseEther("5");
+        console.log(`    💀 ${user.address} depositing 5 ETH...`);
+        await lendingPool.connect(user).deposit({ value: depositAmt });
 
-    // === USER 1 ACTIVITY ===
-    // User 1 Deposits ETH
-    // We assume test accounts have sufficient ETH (Hardhat default accounts have 10000 ETH)
-    const depositAmount1 = hre.ethers.parseEther("5"); // 5 ETH
-    console.log(`  🔹 User1 (${user1.address}) depositing 5 ETH...`);
-    await lendingPool.connect(user1).deposit({ value: depositAmount1 });
+        // Borrow max limit (80% LTV)
+        // 5 ETH * 2000 = 10,000 collateral. Max borrow 8,000.
+        // Borrow 7,900 to be very close/risky
+        const borrowAmt = hre.ethers.parseEther("7800");
+        console.log(`    💀 ${user.address} borrowing 7,800 MCK (High Risk!)...`);
+        await lendingPool.connect(user).borrow(borrowAmt);
+    }
 
-    // User 1 Borrows Tokens
-    // Collateral Value = 5 ETH * 2000 = 10,000 MCK
-    // Max Borrow (80% LTV) = 8,000 MCK
-    const borrowAmount1 = hre.ethers.parseEther("1000"); // Borrow 1000 MCK
-    console.log(`  🔹 User1 borrowing 1000 MCK...`);
-    await lendingPool.connect(user1).borrow(borrowAmount1);
+    // --- Scenario C: Token Suppliers ---
+    console.log("\n  ©️  SCENARIO: Token Suppliers (Yield Farmers)");
+    for (const user of suppliers) {
+        // Assume they already got tokens from Whale
+        const supplyAmt = hre.ethers.parseEther("2000");
+
+        console.log(`    🌾 ${user.address} approving & supplying 2,000 MCK...`);
+        await mockToken.connect(user).approve(lendingPool.target, supplyAmt);
+        await lendingPool.connect(user).supply(supplyAmt);
+    }
+
+    // --- Scenario D: Active Trader ---
+    console.log("\n  🇩  SCENARIO: Active Trader (Complex Flow)");
+    const trader = activeTrader;
+
+    // 1. Deposit
+    await lendingPool.connect(trader).deposit({ value: hre.ethers.parseEther("20") });
+    console.log(`    🔄 Trader deposited 20 ETH`);
+
+    // 2. Borrow
+    const traderBorrow = hre.ethers.parseEther("10000");
+    await lendingPool.connect(trader).borrow(traderBorrow);
+    console.log(`    🔄 Trader borrowed 10,000 MCK`);
+
+    // 3. Repay Half
+    const repayAmt = hre.ethers.parseEther("5000");
+    await mockToken.connect(trader).approve(lendingPool.target, repayAmt);
+    await lendingPool.connect(trader).repay(repayAmt);
+    console.log(`    🔄 Trader repaid 5,000 MCK`);
+
+    // 4. Withdraw some Collateral
+    const withdrawAmt = hre.ethers.parseEther("5");
+    await lendingPool.connect(trader).withdraw(withdrawAmt);
+    console.log(`    🔄 Trader withdrew 5 ETH`);
 
 
-    // === USER 2 ACTIVITY ===
-    // User 2 Deposits ETH
-    const depositAmount2 = hre.ethers.parseEther("50"); // 50 ETH
-    console.log(`  🔹 User2 (${user2.address}) depositing 50 ETH...`);
-    await lendingPool.connect(user2).deposit({ value: depositAmount2 });
+    // 5. SUMMARY
+    console.log("\n[4/5] 📊 FINAL STATE SUMMARY");
 
-    // User 2 Borrows Tokens
-    // Collateral Value = 50 * 2000 = 100,000 MCK
-    // Max Borrow = 80,000 MCK
-    // Let's borrow a larger amount
-    const borrowAmount2 = hre.ethers.parseEther("5000"); // Borrow 5000 MCK
-    console.log(`  🔹 User2 borrowing 5000 MCK...`);
-    await lendingPool.connect(user2).borrow(borrowAmount2);
+    const poolEth = await hre.ethers.provider.getBalance(lendingPool.target);
+    const poolMck = await mockToken.balanceOf(lendingPool.target);
+    console.log(`  🏛️  LendingPool ETH Balance: ${hre.ethers.formatEther(poolEth)} ETH`);
+    console.log(`  🏛️  LendingPool MCK Balance: ${hre.ethers.formatEther(poolMck)} MCK`);
 
-    // --- 4. VERIFYING STATE ---
-    console.log("\n[4/4] 🔍 VERIFYING STATE...");
-
-    const poolBalance = await mockToken.balanceOf(lendingPoolAddress);
-    const user1Loan = await lendingPool.loans(user1.address);
-    const user2Loan = await lendingPool.loans(user2.address);
-
-    console.log("  📊 Pool Token Balance:", hre.ethers.formatEther(poolBalance), "MCK");
-    console.log("  📊 User1 Loan:", hre.ethers.formatEther(user1Loan), "MCK");
-    console.log("  📊 User2 Loan:", hre.ethers.formatEther(user2Loan), "MCK");
+    const borrowersList = await lendingPool.getBorrowers();
+    console.log(`  📋 Active Borrowers Count: ${borrowersList.length}`);
 
     console.log("\n=================================================");
-    console.log("🎉 SEEDING COMPLETE! USE THESE ADDRESSES:");
-    console.log("LENDING_POOL_ADDRESS:", lendingPoolAddress);
-    console.log("MOCK_TOKEN_ADDRESS:", mockTokenAddress);
+    console.log("🎉 SEEDING COMPLETE!");
     console.log("=================================================");
 }
 
