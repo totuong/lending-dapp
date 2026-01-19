@@ -5,7 +5,9 @@ import Sidebar from '../components/Sidebar.vue';
 import { useWeb3 } from '../composables/useWeb3';
 import { lendingService } from '../services/lendingService';
 import { useToast } from 'primevue/usetoast';
+import { useLanguage } from '../composables/useLanguage';
 
+const { t } = useLanguage();
 const toast = useToast();
 
 const { account, isConnected, signer } = useWeb3();
@@ -180,13 +182,14 @@ watch(isConnected, (newVal) => {
         <main class="flex-grow p-8 overflow-y-auto">
             <h1
                 class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent mb-8">
-                My Assets
+                {{ t.ui.myAssets.title }}
             </h1>
 
             <div v-if="!isConnected" class="flex flex-col items-center justify-center h-[50vh] text-center">
                 <Icon icon="mdi:wallet-off" class="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
-                <h2 class="text-2xl font-bold text-gray-600 dark:text-gray-400 mb-2">Wallet Not Connected</h2>
-                <p class="text-gray-500">Please connect your wallet to view your assets.</p>
+                <h2 class="text-2xl font-bold text-gray-600 dark:text-gray-400 mb-2">{{ t.ui.myAssets.walletNotConnected
+                    }}</h2>
+                <p class="text-gray-500">{{ t.ui.myAssets.connectWalletMessage }}</p>
             </div>
 
             <div v-else>
@@ -197,7 +200,8 @@ watch(isConnected, (newVal) => {
                         <div
                             class="absolute -right-6 -top-6 w-24 h-24 bg-green-100 dark:bg-green-500/10 rounded-full blur-2xl">
                         </div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">Total Supplied Value</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">{{ t.ui.myAssets.totalSuppliedValue }}
+                        </p>
                         <p v-if="!isLoading" class="text-3xl font-bold text-green-500 dark:text-green-400">${{
                             totalSupplied }}</p>
                         <Skeleton v-else width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
@@ -207,9 +211,10 @@ watch(isConnected, (newVal) => {
                         <div
                             class="absolute -right-6 -top-6 w-24 h-24 bg-red-100 dark:bg-red-500/10 rounded-full blur-2xl">
                         </div>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">Total Borrowed Value</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">{{ t.ui.myAssets.totalBorrowedValue }}
+                        </p>
                         <p v-if="!isLoading" class="text-3xl font-bold text-red-500 dark:text-red-400">${{ totalBorrowed
-                        }}</p>
+                            }}</p>
                         <Skeleton v-else width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
                     </div>
                 </div>
@@ -220,7 +225,7 @@ watch(isConnected, (newVal) => {
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-gray-500 dark:text-gray-400 font-bold flex items-center gap-2">
                             <Icon icon="mdi:heart-pulse" class="text-red-500 dark:text-red-400" />
-                            Health Factor
+                            {{ t.ui.common.healthFactor }}
                         </span>
                         <span
                             :class="healthFactor >= 1.5 ? 'text-green-500 dark:text-green-400' : 'text-yellow-500 dark:text-yellow-400'"
@@ -233,7 +238,7 @@ watch(isConnected, (newVal) => {
                         </div>
                     </div>
                     <p class="text-xs text-gray-500 mt-2">
-                        Ensure your health factor stays above 1.0 to avoid liquidation.
+                        {{ t.ui.myAssets.healthFactorWarning }}
                     </p>
                 </div>
 
@@ -241,11 +246,12 @@ watch(isConnected, (newVal) => {
                 <div v-if="isEmpty"
                     class="flex flex-col items-center justify-center p-12 bg-white/50 dark:bg-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 border-dashed text-center">
                     <Icon icon="mdi:package-variant-closed" class="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" />
-                    <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">No Assets Found</h3>
-                    <p class="text-gray-500 mb-6">You haven't supplied or borrowed any assets yet.</p>
-                    <p class="text-gray-500 mb-6">You haven't supplied or borrowed any assets yet.</p>
-                    <Button label="Go to Market" icon="pi pi-arrow-right" iconPos="right" @click="navigateTo('/market')"
-                        class="!bg-blue-600 hover:!bg-blue-700 !border-none" />
+                    <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">{{ t.ui.myAssets.noAssetsFound
+                        }}</h3>
+                    <p class="text-gray-500 mb-6">{{ t.ui.myAssets.noAssetsMessage }}</p>
+                    <Button :label="t.ui.myAssets.goToMarket" icon="pi pi-arrow-right" iconPos="right"
+                        @click="navigateTo('/market')"
+                        class="!bg-gradient-to-r !from-blue-600 !to-cyan-600 hover:!from-blue-500 hover:!to-cyan-500 !border-none !text-white !font-bold !py-2.5 !px-6 !rounded-xl !shadow-lg !shadow-blue-500/20 hover:!shadow-blue-500/40 transition-all duration-300 transform hover:-translate-y-0.5" />
                 </div>
 
                 <div v-else class="space-y-8">
@@ -254,12 +260,13 @@ watch(isConnected, (newVal) => {
                         class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm dark:shadow-none">
                         <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
                             <Icon icon="mdi:arrow-up-circle" class="text-green-500 dark:text-green-400 w-6 h-6" />
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Your Supplies</h3>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ t.ui.myAssets.yourSupplies }}
+                            </h3>
                         </div>
                         <div class="overflow-x-auto">
                             <DataTable :value="supplies"
                                 :rowClass="() => 'hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors'">
-                                <Column header="Asset">
+                                <Column :header="t.ui.common.asset">
                                     <template #body="slotProps">
                                         <div class="flex items-center gap-3">
                                             <Icon :icon="slotProps.data.icon"
@@ -269,19 +276,21 @@ watch(isConnected, (newVal) => {
                                         </div>
                                     </template>
                                 </Column>
-                                <Column field="balance" header="Balance"
+                                <Column field="balance" :header="t.ui.common.balance"
                                     class="font-mono text-gray-600 dark:text-gray-300"></Column>
-                                <Column field="apy" header="APY" class="text-green-500 dark:text-green-400"></Column>
-                                <Column header="Collateral">
+                                <Column field="apy" :header="t.ui.common.apy"
+                                    class="text-green-500 dark:text-green-400"></Column>
+                                <Column :header="t.ui.myAssets.collateral">
                                     <template #body="slotProps">
                                         <span v-if="slotProps.data.isCollateral"
-                                            class="text-green-600 dark:text-green-400 text-xs border border-green-200 dark:border-green-500/30 bg-green-100 dark:bg-green-500/10 px-2 py-1 rounded">Enabled</span>
-                                        <span v-else class="text-gray-500 text-xs">Disabled</span>
+                                            class="text-green-600 dark:text-green-400 text-xs border border-green-200 dark:border-green-500/30 bg-green-100 dark:bg-green-500/10 px-2 py-1 rounded">{{
+                                            t.ui.myAssets.enabled }}</span>
+                                        <span v-else class="text-gray-500 text-xs">{{ t.ui.myAssets.disabled }}</span>
                                     </template>
                                 </Column>
-                                <Column header="Action">
+                                <Column :header="t.ui.myAssets.action">
                                     <template #body="slotProps">
-                                        <Button label="Withdraw" size="small" severity="info" outlined
+                                        <Button :label="t.ui.myAssets.withdraw" size="small" severity="info" outlined
                                             class="!text-blue-600 dark:!text-blue-400 hover:!text-white hover:!bg-blue-600 !border-blue-200 dark:!border-blue-500/30 transition-colors"
                                             @click="handleWithdraw(slotProps.data)" />
                                     </template>
@@ -295,12 +304,13 @@ watch(isConnected, (newVal) => {
                         class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm dark:shadow-none">
                         <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
                             <Icon icon="mdi:arrow-down-circle" class="text-red-500 dark:text-red-400 w-6 h-6" />
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">Your Borrows</h3>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ t.ui.myAssets.yourBorrows }}
+                            </h3>
                         </div>
                         <div class="overflow-x-auto">
                             <DataTable :value="borrows"
                                 :rowClass="() => 'hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors'">
-                                <Column header="Asset">
+                                <Column :header="t.ui.common.asset">
                                     <template #body="slotProps">
                                         <div class="flex items-center gap-3">
                                             <Icon :icon="slotProps.data.icon"
@@ -310,12 +320,14 @@ watch(isConnected, (newVal) => {
                                         </div>
                                     </template>
                                 </Column>
-                                <Column field="debt" header="Debt" class="font-mono text-gray-600 dark:text-gray-300">
+                                <Column field="debt" :header="t.ui.myAssets.debt"
+                                    class="font-mono text-gray-600 dark:text-gray-300">
                                 </Column>
-                                <Column field="apy" header="APY" class="text-purple-500 dark:text-purple-400"></Column>
-                                <Column header="Action">
+                                <Column field="apy" :header="t.ui.common.apy"
+                                    class="text-purple-500 dark:text-purple-400"></Column>
+                                <Column :header="t.ui.myAssets.action">
                                     <template #body="slotProps">
-                                        <Button label="Repay" size="small" severity="help" outlined
+                                        <Button :label="t.ui.myAssets.repay" size="small" severity="help" outlined
                                             class="!text-purple-600 dark:!text-purple-400 hover:!text-white hover:!bg-purple-600 !border-purple-200 dark:!border-purple-500/30 transition-colors"
                                             @click="handleRepay(slotProps.data)" />
                                     </template>
@@ -329,7 +341,8 @@ watch(isConnected, (newVal) => {
 
         <!-- Withdraw/Repay Dialog -->
         <Dialog v-model:visible="visibleActionDialog" modal
-            :header="actionType === 'withdraw' ? 'Withdraw Asset' : 'Repay Debt'" :style="{ width: '30rem' }">
+            :header="actionType === 'withdraw' ? t.ui.myAssets.withdrawAsset : t.ui.myAssets.repayDebt"
+            :style="{ width: '30rem' }">
             <div v-if="selectedActionAsset" class="space-y-4">
                 <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center gap-4">
                     <Icon :icon="selectedActionAsset.icon" class="w-10 h-10"
@@ -341,20 +354,23 @@ watch(isConnected, (newVal) => {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{
+                        t.ui.myAssets.amount
+                        }}</label>
                     <InputNumber v-model="actionAmount" :maxFractionDigits="18" placeholder="0.00" class="w-full"
                         inputClass="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-3" />
                     <p class="text-xs text-gray-500 mt-1 text-right">
-                        Available: <span class="font-bold font-mono">{{ actionType === 'withdraw' ?
+                        {{ t.ui.myAssets.available }}: <span class="font-bold font-mono">{{ actionType === 'withdraw' ?
                             selectedActionAsset.balance
                             : selectedActionAsset.debt }}</span>
                     </p>
                 </div>
 
                 <div class="flex gap-3 pt-4">
-                    <Button label="Cancel" outlined class="flex-1" @click="visibleActionDialog = false" />
-                    <Button :label="actionType === 'withdraw' ? 'Withdraw' : 'Repay'" :loading="isProcessing"
-                        class="flex-1"
+                    <Button :label="t.ui.myAssets.cancel" outlined class="flex-1"
+                        @click="visibleActionDialog = false" />
+                    <Button :label="actionType === 'withdraw' ? t.ui.myAssets.withdraw : t.ui.myAssets.repay"
+                        :loading="isProcessing" class="flex-1"
                         :class="actionType === 'withdraw' ? '!bg-blue-600 hover:!bg-blue-700 !border-none' : '!bg-purple-600 hover:!bg-purple-700 !border-none'"
                         @click="submitAction" :disabled="!actionAmount" />
                 </div>

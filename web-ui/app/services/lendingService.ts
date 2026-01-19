@@ -472,6 +472,91 @@ export const lendingService = {
             console.error("Update ETH Price Error:", error);
             return { success: false, error: error.message || "Update price failed" };
         }
+    },
+
+    async setInterestParameters(signer: any, baseRate: string, multiplier: string) {
+        try {
+            const contract = getContract(signer);
+            
+            // Note: Contract expects 1e18 scaled "per second" rates.
+            // Input here should be raw strings representing the big integers.
+            // It is up to the UI to calculate APY % -> Per Second BigInt.
+            
+            const tx = await (contract as any).setInterestParameters(baseRate, multiplier);
+            await tx.wait();
+            return { success: true, data: tx.hash };
+        } catch (error: any) {
+            console.error("Set Interest Params Error:", error);
+            if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
+                 return { success: false, error: "Transaction rejected by user." };
+            }
+            return { success: false, error: error.message || "Setting parameters failed" };
+        }
+    },
+
+    async getMarketDetails(signer: any) {
+        try {
+            const contract = getContract(signer);
+            const rawSigner = toRaw(signer);
+            
+            // 1. Fetch Contract Params
+            // Use try-catch for these calls individually or Promise.allSettled if unsure of contract version, 
+            // but we assume updated contract here.
+            const baseRateStr = await (contract as any).BASE_RATE_PER_SECOND();
+            const multiStr = await (contract as any).MULTIPLIER_PER_SECOND();
+            const totalBorrowsStr = await (contract as any).totalBorrowsGlobal();
+            
+            // 2. Fetch Pool Liquidity (Cash)
+            const tokenAddress = await (contract as any).lendingToken();
+             const ERC20_ABI = ["function balanceOf(address) view returns (uint256)"];
+            const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, rawSigner);
+            const cashStr = await (tokenContract as any).balanceOf(LENDING_POOL_ADDRESS);
+            
+            // 3. Calculate Rates
+            const WAD = 1000000000000000000n; // 1e18
+            const SECONDS_PER_YEAR = 31536000n;
+            
+            const baseRate = BigInt(baseRateStr);
+            const multiplier = BigInt(multiStr);
+            const totalBorrows = BigInt(totalBorrowsStr);
+            const cash = BigInt(cashStr);
+            const totalSup = totalBorrows + cash;
+            
+            let util = 0n;
+            if (totalSup > 0n) {
+                util = (totalBorrows * WAD) / totalSup;
+            }
+            
+            // Borrow Rate = Base + (Multiplier * Util)
+            const borrowRatePerSec = baseRate + (multiplier * util) / WAD;
+            
+            // Supply Rate = Borrow Rate * Util
+            const supplyRatePerSec = (borrowRatePerSec * util) / WAD;
+            
+            // Convert to APY % (Simple APR calculation matching contract logic)
+            // Rate * SecondsPerYear * 100 
+            // Scale: (Rate(1e18) * Seconds * 100) / 1e18 = Percent
+            const borrowAPY = (Number(borrowRatePerSec) * Number(SECONDS_PER_YEAR) * 100) / Number(WAD);
+            const supplyAPY = (Number(supplyRatePerSec) * Number(SECONDS_PER_YEAR) * 100) / Number(WAD);
+            
+            // Format Large Numbers
+            const totalBorrowsFmt = parseFloat(ethers.formatEther(totalBorrows));
+            const totalSupplyFmt = parseFloat(ethers.formatEther(totalSup));
+            
+            return {
+                success: true,
+                data: {
+                    totalBorrows: totalBorrowsFmt,
+                    totalSupply: totalSupplyFmt,
+                    borrowAPY: borrowAPY, // Number, e.g. 5.2
+                    supplyAPY: supplyAPY, // Number, e.g. 2.1
+                    utilization: Number(util) / Number(WAD) * 100 // Percent
+                }
+            };
+        } catch (error: any) {
+            console.error("Get Market Details Error:", error);
+            return { success: false, error: error.message };
+        }
     }
 };
 

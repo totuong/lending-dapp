@@ -7,7 +7,9 @@ import DashboardHeader from '../components/DashboardHeader.vue';
 import { useWeb3 } from '../composables/useWeb3';
 import { lendingService } from '../services/lendingService';
 import { useToast } from 'primevue/usetoast';
+import { useLanguage } from '../composables/useLanguage';
 
+const { t } = useLanguage();
 const toast = useToast();
 const { disconnect, account, isConnected, signer, isAdmin } = useWeb3();
 
@@ -39,22 +41,81 @@ const healthFactor = ref(1.8);
 
 const marketData = ref([
   {
+    symbol: 'ETH',
     name: 'Ethereum',
     icon: 'mdi:ethereum',
     color: 'text-blue-600 dark:text-blue-400',
-    totalSupply: '$10.2M',
-    supplyAPY: '2.5%',
-    totalBorrowed: '$4.1M',
-    borrowAPY: '3.8%'
+    totalSupply: '10.2M',
+    supplyAPY: '3.0%',
+    totalBorrowed: '-',
+    borrowAPY: '5.0%',
+    utilization: 0
   },
   {
+    symbol: 'WBTC',
+    name: 'Wrapped Bitcoin',
+    icon: 'mdi:bitcoin',
+    color: 'text-orange-500 dark:text-orange-400',
+    totalSupply: '850.5K',
+    supplyAPY: '1.2%',
+    totalBorrowed: '420.1K',
+    borrowAPY: '2.5%',
+    utilization: 45
+  },
+  {
+    symbol: 'USDC',
+    name: 'USD Coin',
+    icon: 'mdi:currency-usd-circle-outline',
+    color: 'text-blue-500 dark:text-blue-400',
+    totalSupply: '240.2M',
+    supplyAPY: '3.8%',
+    totalBorrowed: '180.5M',
+    borrowAPY: '5.2%',
+    utilization: 75
+  },
+  {
+    symbol: 'DAI',
+    name: 'Dai Stablecoin',
+    icon: 'mdi:circle-slice-8',
+    color: 'text-yellow-500 dark:text-yellow-400',
+    totalSupply: '150.1M',
+    supplyAPY: '4.1%',
+    totalBorrowed: '90.4M',
+    borrowAPY: '5.8%',
+    utilization: 60
+  },
+  {
+    symbol: 'LINK',
+    name: 'Chainlink',
+    icon: 'mdi:hexagon-multiple-outline',
+    color: 'text-blue-600 dark:text-blue-500',
+    totalSupply: '12.5M',
+    supplyAPY: '2.4%',
+    totalBorrowed: '5.2M',
+    borrowAPY: '4.1%',
+    utilization: 41
+  },
+  {
+    symbol: 'USDT',
+    name: 'Tether USD',
+    icon: 'mdi:dollar',
+    color: 'text-green-600 dark:text-green-400',
+    totalSupply: '105.4M',
+    supplyAPY: '3.5%',
+    totalBorrowed: '80.1M',
+    borrowAPY: '5.0%',
+    utilization: 70
+  },
+  {
+    symbol: 'MCK',
     name: 'Mock Token',
     icon: 'mdi:circle-multiple-outline',
     color: 'text-purple-600 dark:text-purple-400',
-    totalSupply: '$50.5M',
-    supplyAPY: '4.2%',
-    totalBorrowed: '$35.2M',
-    borrowAPY: '5.5%'
+    totalSupply: 'Loading...',
+    supplyAPY: '3.5%',
+    totalBorrowed: 'Loading...',
+    borrowAPY: '5.0%',
+    utilization: 0
   }
 ]);
 
@@ -104,6 +165,21 @@ const fetchBalance = async () => {
       ethPrice = Number(priceRes.data);
     }
 
+    // 6. Get Market Details (Real APY & Stats)
+    const marketRes = await lendingService.getMarketDetails(signer.value);
+    if (marketRes.success && marketRes.data) {
+      const mckIndex = marketData.value.findIndex(a => a.symbol === 'MCK');
+      const asset = marketData.value[mckIndex];
+      if (asset) {
+        const data = marketRes.data;
+        asset.totalSupply = formatNumber(data.totalSupply) + ' MCK';
+        asset.totalBorrowed = formatNumber(data.totalBorrows) + ' MCK';
+        asset.supplyAPY = data.supplyAPY.toFixed(2) + '%';
+        asset.borrowAPY = data.borrowAPY.toFixed(2) + '%';
+        asset.utilization = data.utilization;
+      }
+    }
+
     const supplyVal = Number.parseFloat(userSupplyBalance.value || '0');
     const borrowVal = Number.parseFloat(userBorrowBalance.value || '0');
 
@@ -128,6 +204,12 @@ const fetchBalance = async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
   isDataLoading.value = false;
+};
+
+const formatNumber = (num: number) => {
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
+  if (num >= 1_000) return (num / 1_000).toFixed(2) + 'K';
+  return num.toFixed(2);
 };
 
 const handleDeposit = async () => {
@@ -324,7 +406,7 @@ const openDetails = (asset: any) => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" :class="isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'">
           <div
             class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
-            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Net Worth</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">{{ t.ui.common.netWorth }}</p>
             <div v-if="isDataLoading" class="h-8 w-32">
               <Skeleton width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
             </div>
@@ -332,7 +414,7 @@ const openDetails = (asset: any) => {
           </div>
           <div
             class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
-            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Total Supply</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">{{ t.ui.common.totalSupply }}</p>
             <div v-if="isDataLoading" class="h-8 w-32">
               <Skeleton width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
             </div>
@@ -341,7 +423,7 @@ const openDetails = (asset: any) => {
           </div>
           <div
             class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
-            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Total Borrow</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">{{ t.ui.common.totalBorrow }}</p>
             <div v-if="isDataLoading" class="h-8 w-32">
               <Skeleton width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
             </div>
@@ -352,7 +434,7 @@ const openDetails = (asset: any) => {
           <!-- Pool Liquidity Card (Admin Only) -->
           <div v-if="isAdmin"
             class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
-            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">Pool Liquidity</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mb-1">{{ t.ui.common.poolLiquidity }}</p>
             <div v-if="isDataLoading" class="h-8 w-32">
               <Skeleton width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
             </div>
@@ -371,7 +453,7 @@ const openDetails = (asset: any) => {
             class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
             <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
               <Icon icon="mdi:bank-transfer-in" class="text-green-500 dark:text-green-400" />
-              Supply Assets
+              {{ t.ui.dashboard.supplyAssets }}
             </h3>
 
             <!-- Mode Toggle -->
@@ -382,12 +464,12 @@ const openDetails = (asset: any) => {
               <button @click="isWithdrawMode = false"
                 class="relative z-10 flex-1 py-2 text-sm font-bold transition-colors duration-200"
                 :class="!isWithdrawMode ? 'text-green-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'">
-                Supply
+                {{ t.ui.dashboard.supply }}
               </button>
               <button @click="isWithdrawMode = true"
                 class="relative z-10 flex-1 py-2 text-sm font-bold transition-colors duration-200"
                 :class="isWithdrawMode ? 'text-orange-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'">
-                Withdraw
+                {{ t.ui.dashboard.withdraw }}
               </button>
             </div>
 
@@ -411,9 +493,9 @@ const openDetails = (asset: any) => {
 
             <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 mb-4 border border-gray-100 dark:border-gray-800">
               <div class="flex justify-between mb-2">
-                <span class="text-gray-500 dark:text-gray-400">Asset</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ t.ui.common.asset }}</span>
                 <span class="text-gray-500 dark:text-gray-400">{{ isWithdrawMode ? (selectedSupplyAsset === 'ETH' ?
-                  'Deposited' : 'Supplied') : 'Wallet' }} Balance</span>
+                  t.ui.common.deposited : t.ui.common.supplied) : t.ui.common.wallet }} {{ t.ui.common.balance }}</span>
               </div>
               <div class="flex justify-between items-center">
                 <div class="flex items-center gap-2">
@@ -449,12 +531,14 @@ const openDetails = (asset: any) => {
             <div v-if="!isWithdrawMode">
               <Button @click="selectedSupplyAsset === 'ETH' ? handleDeposit() : handleSupplyToken()"
                 :disabled="isLoading || !depositAmount" :loading="isLoading"
-                :label="selectedSupplyAsset === 'ETH' ? 'Supply ETH' : 'Supply Mock Token'" icon="pi pi-check"
+                :label="selectedSupplyAsset === 'ETH' ? t.ui.dashboard.actions.supplyEth : t.ui.dashboard.actions.supplyToken"
+                icon="pi pi-check"
                 class="w-full !bg-gradient-to-r !from-green-600 !to-emerald-600 hover:!from-green-500 hover:!to-emerald-500 !border-none !text-white !font-bold !py-3 !rounded-xl !shadow-lg !shadow-green-500/20 hover:!shadow-green-500/40 transition-all duration-300 transform hover:-translate-y-0.5" />
             </div>
             <div v-else>
               <Button @click="selectedSupplyAsset === 'ETH' ? handleWithdraw() : handleWithdrawToken()"
-                :disabled="isLoading" :label="selectedSupplyAsset === 'ETH' ? 'Withdraw ETH' : 'Withdraw Mock Token'"
+                :disabled="isLoading"
+                :label="selectedSupplyAsset === 'ETH' ? t.ui.dashboard.actions.withdrawEth : t.ui.dashboard.actions.withdrawToken"
                 icon="pi pi-wallet"
                 class="w-full !bg-gradient-to-r !from-orange-500 !to-amber-600 hover:!from-orange-400 hover:!to-amber-500 !border-none !text-white !font-bold !py-3 !rounded-xl !shadow-lg !shadow-orange-500/20 hover:!shadow-orange-500/40 transition-all duration-300 transform hover:-translate-y-0.5" />
             </div>
@@ -465,7 +549,7 @@ const openDetails = (asset: any) => {
             class="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
             <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
               <Icon icon="mdi:hand-coin" class="text-purple-500 dark:text-purple-400" />
-              Borrow Assets
+              {{ t.ui.dashboard.borrowAssets }}
             </h3>
             <!-- Mode Toggle -->
             <div class="flex p-1 mb-6 bg-gray-100 dark:bg-gray-700 rounded-xl relative">
@@ -475,12 +559,12 @@ const openDetails = (asset: any) => {
               <button @click="isRepayMode = false"
                 class="relative z-10 flex-1 py-2 text-sm font-bold transition-colors duration-200"
                 :class="!isRepayMode ? 'text-purple-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'">
-                Borrow
+                {{ t.ui.dashboard.borrow }}
               </button>
               <button @click="isRepayMode = true"
                 class="relative z-10 flex-1 py-2 text-sm font-bold transition-colors duration-200"
                 :class="isRepayMode ? 'text-pink-600 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'">
-                Repay
+                {{ t.ui.dashboard.repay }}
               </button>
             </div>
 
@@ -494,8 +578,8 @@ const openDetails = (asset: any) => {
             </div>
             <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 mb-4 border border-gray-100 dark:border-gray-800">
               <div class="flex justify-between mb-2">
-                <span class="text-gray-500 dark:text-gray-400">Asset</span>
-                <span class="text-gray-500 dark:text-gray-400">APY / Rate</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ t.ui.common.asset }}</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ t.ui.common.apy }} / Rate</span>
               </div>
               <div class="flex justify-between items-center">
                 <div class="flex items-center gap-2">
@@ -505,7 +589,8 @@ const openDetails = (asset: any) => {
                   </div>
                   <span class="font-bold text-gray-900 dark:text-white">MCK</span>
                 </div>
-                <span class="text-purple-500 dark:text-purple-400 font-bold">3.5%</span>
+                <span class="text-purple-500 dark:text-purple-400 font-bold">{{marketData.find(a => a.symbol ===
+                  'MCK')?.borrowAPY || '5.0%'}}</span>
               </div>
             </div>
 
@@ -518,12 +603,12 @@ const openDetails = (asset: any) => {
 
             <div v-if="!isRepayMode">
               <Button @click="handleBorrow" :disabled="isLoading || !borrowAmount" :loading="isLoading"
-                label="Borrow Token" icon="pi pi-briefcase"
+                :label="t.ui.dashboard.actions.borrowToken" icon="pi pi-briefcase"
                 class="w-full !bg-gradient-to-r !from-purple-600 !to-indigo-600 hover:!from-purple-500 hover:!to-indigo-500 !border-none !text-white !font-bold !py-3 !rounded-xl !shadow-lg !shadow-purple-500/20 hover:!shadow-purple-500/40 transition-all duration-300 transform hover:-translate-y-0.5" />
             </div>
             <div v-else>
               <Button @click="handleRepay" :disabled="isLoading || !borrowAmount" :loading="isLoading"
-                label="Repay Token" icon="pi pi-replay"
+                :label="t.ui.dashboard.actions.repayToken" icon="pi pi-replay"
                 class="w-full !bg-gradient-to-r !from-pink-600 !to-rose-600 hover:!from-pink-500 hover:!to-rose-500 !border-none !text-white !font-bold !py-3 !rounded-xl !shadow-lg !shadow-pink-500/20 hover:!shadow-pink-500/40 transition-all duration-300 transform hover:-translate-y-0.5" />
             </div>
           </div>
@@ -551,12 +636,13 @@ const openDetails = (asset: any) => {
       <div v-if="currentTab === 'overview'"
         class="mt-8 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm dark:shadow-none">
         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Market Overview</h3>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{ t.ui.dashboard.marketOverview }}</h3>
         </div>
         <div class="overflow-x-auto">
-          <DataTable :value="marketData" :loading="isDataLoading" tableStyle="min-width: 50rem"
+          <DataTable :value="marketData" :loading="isDataLoading" tableStyle="min-width: 50rem" :paginator="true"
+            :rows="5" :rowsPerPageOptions="[5, 10, 20]"
             :rowClass="() => 'hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer'">
-            <Column header="Asset">
+            <Column :header="t.ui.common.asset" sortable field="name">
               <template #body="slotProps">
                 <div class="flex items-center gap-3">
                   <Icon :icon="slotProps.data.icon" class="w-6 h-6" :class="slotProps.data.color" />
@@ -564,14 +650,21 @@ const openDetails = (asset: any) => {
                 </div>
               </template>
             </Column>
-            <Column field="totalSupply" header="Total Supplied" class="text-gray-600 dark:text-gray-300"></Column>
-            <Column field="supplyAPY" header="Supply APY" class="text-green-500 dark:text-green-400 font-bold"></Column>
-            <Column field="totalBorrowed" header="Total Borrowed" class="text-gray-600 dark:text-gray-300"></Column>
-            <Column field="borrowAPY" header="Borrow APY" class="text-purple-500 dark:text-purple-400 font-bold">
+            <Column field="totalSupply" :header="t.ui.common.totalSupply" sortable
+              class="text-gray-600 dark:text-gray-300">
             </Column>
-            <Column header="Action">
+            <Column field="supplyAPY" :header="t.ui.dashboard.supply + ' APY'" sortable
+              class="text-green-500 dark:text-green-400 font-bold">
+            </Column>
+            <Column field="totalBorrowed" :header="t.ui.common.totalBorrow" sortable
+              class="text-gray-600 dark:text-gray-300">
+            </Column>
+            <Column field="borrowAPY" :header="t.ui.dashboard.borrow + ' APY'" sortable
+              class="text-purple-500 dark:text-purple-400 font-bold">
+            </Column>
+            <Column :header="t.ui.common.action">
               <template #body="slotProps">
-                <Button label="Details" size="small"
+                <Button :label="t.ui.common.details" size="small"
                   class="!bg-gradient-to-r !from-blue-500 !to-cyan-500 hover:!from-blue-600 hover:!to-cyan-600 !text-white !border-none !rounded-lg !px-4 !py-1.5 !shadow-sm hover:!shadow-md transition-all font-semibold"
                   @click="openDetails(slotProps.data)" icon="pi pi-info-circle" />
               </template>
@@ -593,35 +686,35 @@ const openDetails = (asset: any) => {
 
         <div class="grid grid-cols-2 gap-4">
           <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
-            <p class="text-xs text-gray-500 mb-1">Total Supply</p>
+            <p class="text-xs text-gray-500 mb-1">{{ t.ui.common.totalSupply }}</p>
             <p class="font-bold text-lg">{{ selectedAsset.totalSupply }}</p>
           </div>
           <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
-            <p class="text-xs text-gray-500 mb-1">Total Borrow</p>
+            <p class="text-xs text-gray-500 mb-1">{{ t.ui.common.totalBorrow }}</p>
             <p class="font-bold text-lg">{{ selectedAsset.totalBorrowed }}</p>
           </div>
           <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
-            <p class="text-xs text-gray-500 mb-1">Supply APY</p>
+            <p class="text-xs text-gray-500 mb-1">{{ t.ui.dashboard.supply }} APY</p>
             <p class="font-bold text-green-500">{{ selectedAsset.supplyAPY }}</p>
           </div>
           <div class="p-3 border border-gray-100 dark:border-gray-700 rounded-lg">
-            <p class="text-xs text-gray-500 mb-1">Borrow APY</p>
+            <p class="text-xs text-gray-500 mb-1">{{ t.ui.dashboard.borrow }} APY</p>
             <p class="font-bold text-purple-500">{{ selectedAsset.borrowAPY }}</p>
           </div>
         </div>
 
         <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-          <h4 class="font-bold mb-2">Protocol Stats (Mock)</h4>
+          <h4 class="font-bold mb-2">{{ t.ui.common.protocolStats }} (Mock)</h4>
           <div class="flex justify-between text-sm py-1">
-            <span class="text-gray-500">Utilization Rate</span>
+            <span class="text-gray-500">{{ t.ui.common.utilization }}</span>
             <span class="font-mono">74.5%</span>
           </div>
           <div class="flex justify-between text-sm py-1">
-            <span class="text-gray-500">Liquidation Threshold</span>
+            <span class="text-gray-500">{{ t.ui.common.liquidationThreshold }}</span>
             <span class="font-mono">82.5%</span>
           </div>
           <div class="flex justify-between text-sm py-1">
-            <span class="text-gray-500">Reserve Factor</span>
+            <span class="text-gray-500">{{ t.ui.common.reserveFactor }}</span>
             <span class="font-mono">10.0%</span>
           </div>
         </div>
