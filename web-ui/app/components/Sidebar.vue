@@ -3,9 +3,11 @@ import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useWeb3 } from '../composables/useWeb3';
 import { useTheme } from '../composables/useTheme';
+import { useLanguage } from '../composables/useLanguage';
 
 const { disconnect, account, isAdmin } = useWeb3();
 const { isDark, toggleTheme } = useTheme();
+const { t, lang, toggleLanguage } = useLanguage();
 const isCollapsed = ref(false);
 </script>
 
@@ -27,9 +29,16 @@ const isCollapsed = ref(false);
         <span v-if="!isCollapsed" class="transition-opacity duration-300">Lending</span>
       </div>
 
+      <!-- Language Toggle (only visible when expanded) -->
+      <button v-if="!isCollapsed" @click="toggleLanguage"
+        class="p-2 ml-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        :title="lang === 'vi' ? 'Switch to English' : 'Chuyển sang Tiếng Việt'">
+        <Icon :icon="lang === 'vi' ? 'flag:vn-4x3' : 'flag:us-4x3'" class="w-6 h-6 rounded-sm shadow-sm" />
+      </button>
+
       <!-- Dark Mode Toggle (only visible when expanded) -->
       <button v-if="!isCollapsed" @click="toggleTheme"
-        class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        class="p-2 ml-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         title="Toggle Dark Mode">
         <Icon :icon="isDark ? 'mdi:weather-night' : 'mdi:weather-sunny'" class="w-6 h-6"
           :class="isDark ? 'text-blue-400' : 'text-yellow-500'" />
@@ -42,21 +51,21 @@ const isCollapsed = ref(false);
         class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
         :class="{ 'justify-center px-2': isCollapsed }">
         <Icon icon="mdi:view-dashboard" class="w-5 h-5 flex-shrink-0" />
-        <span v-if="!isCollapsed">General Overview</span>
+        <span v-if="!isCollapsed">{{ t.sidebar.dashboard }}</span>
       </NuxtLink>
       <NuxtLink to="/market"
         active-class="bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
         class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
         :class="{ 'justify-center px-2': isCollapsed }">
         <Icon icon="mdi:chart-line" class="w-5 h-5 flex-shrink-0" />
-        <span v-if="!isCollapsed">Lending Market</span>
+        <span v-if="!isCollapsed">{{ t.sidebar.market }}</span>
       </NuxtLink>
       <NuxtLink to="/my-assets"
         active-class="bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
         class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
         :class="{ 'justify-center px-2': isCollapsed }">
         <Icon icon="mdi:wallet" class="w-5 h-5 flex-shrink-0" />
-        <span v-if="!isCollapsed">My Assets</span>
+        <span v-if="!isCollapsed">{{ t.sidebar.myAssets }}</span>
       </NuxtLink>
       <ClientOnly v-if="isAdmin">
         <NuxtLink to="/liquidation"
@@ -64,7 +73,7 @@ const isCollapsed = ref(false);
           class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
           :class="{ 'justify-center px-2': isCollapsed }">
           <Icon icon="mdi:gavel" class="w-5 h-5 flex-shrink-0" />
-          <span v-if="!isCollapsed">Liquidation</span>
+          <span v-if="!isCollapsed">{{ t.sidebar.liquidation }}</span>
         </NuxtLink>
       </ClientOnly>
       <NuxtLink to="/settings"
@@ -72,14 +81,14 @@ const isCollapsed = ref(false);
         class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
         :class="{ 'justify-center px-2': isCollapsed }">
         <Icon icon="mdi:cog" class="w-5 h-5 flex-shrink-0" />
-        <span v-if="!isCollapsed">Settings</span>
+        <span v-if="!isCollapsed">{{ t.sidebar.settings }}</span>
       </NuxtLink>
       <NuxtLink to="/guide"
         active-class="bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
         class="flex items-center gap-3 px-4 py-3 rounded-lg border border-transparent transition-colors whitespace-nowrap text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white"
         :class="{ 'justify-center px-2': isCollapsed }">
         <Icon icon="mdi:book-open-page-variant" class="w-5 h-5 flex-shrink-0" />
-        <span v-if="!isCollapsed">Guide</span>
+        <span v-if="!isCollapsed">{{ t.sidebar.guide }}</span>
       </NuxtLink>
     </nav>
 
@@ -90,7 +99,8 @@ const isCollapsed = ref(false);
           {{ account?.slice(2, 4) }}
         </div>
         <div v-if="!isCollapsed" class="overflow-hidden">
-          <p class="text-sm font-bold text-gray-900 dark:text-white truncate w-24" :title="account || undefined">{{ account }}</p>
+          <p class="text-sm font-bold text-gray-900 dark:text-white truncate w-24" :title="account || undefined">{{
+            account }}</p>
           <p class="text-xs text-green-600 dark:text-green-400">Connected</p>
         </div>
       </div>

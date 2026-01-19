@@ -209,7 +209,7 @@ watch(isConnected, (newVal) => {
                         </div>
                         <p class="text-gray-500 dark:text-gray-400 text-sm mb-2">Total Borrowed Value</p>
                         <p v-if="!isLoading" class="text-3xl font-bold text-red-500 dark:text-red-400">${{ totalBorrowed
-                        }}</p>
+                            }}</p>
                         <Skeleton v-else width="8rem" height="2rem" class="!bg-gray-200 dark:!bg-gray-700" />
                     </div>
                 </div>
@@ -245,7 +245,7 @@ watch(isConnected, (newVal) => {
                     <p class="text-gray-500 mb-6">You haven't supplied or borrowed any assets yet.</p>
                     <p class="text-gray-500 mb-6">You haven't supplied or borrowed any assets yet.</p>
                     <Button label="Go to Market" icon="pi pi-arrow-right" iconPos="right" @click="navigateTo('/market')"
-                        class="!bg-blue-600 hover:!bg-blue-700 !border-none" />
+                        class="!bg-gradient-to-r !from-blue-600 !to-cyan-600 hover:!from-blue-500 hover:!to-cyan-500 !border-none !text-white !font-bold !py-2.5 !px-6 !rounded-xl !shadow-lg !shadow-blue-500/20 hover:!shadow-blue-500/40 transition-all duration-300 transform hover:-translate-y-0.5" />
                 </div>
 
                 <div v-else class="space-y-8">

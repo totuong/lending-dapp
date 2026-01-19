@@ -21,8 +21,11 @@ contract LendingPool is ReentrancyGuard, Ownable {
     // Constants for Linear Rate Model (1e18 scale)
     // Approx 5% Base + 20% Slope
     // 5% / (365 * 24 * 60 * 60) approx 1585489599 per second (1e18 scale)
-    uint256 public constant BASE_RATE_PER_SECOND = 1585489599; 
-    uint256 public constant MULTIPLIER_PER_SECOND = 6341958396;
+    // Constants for Linear Rate Model (1e18 scale)
+    // Approx 5% Base + 20% Slope
+    // 5% / (365 * 24 * 60 * 60) approx 1585489599 per second (1e18 scale)
+    uint256 public BASE_RATE_PER_SECOND = 1585489599; 
+    uint256 public MULTIPLIER_PER_SECOND = 6341958396;
     uint256 public constant WAD = 1e18;
 
     IERC20 public lendingToken;
@@ -41,6 +44,7 @@ contract LendingPool is ReentrancyGuard, Ownable {
     event PriceUpdated(uint256 newPrice);
     
     event InterestAccrued(uint256 borrowIndex, uint256 supplyIndex, uint256 totalBorrows);
+    event InterestParamsUpdated(uint256 baseRate, uint256 multiplier);
 
     constructor(address _lendingToken, uint256 _initialEthPrice) {
         lendingToken = IERC20(_lendingToken);
@@ -222,6 +226,18 @@ contract LendingPool is ReentrancyGuard, Ownable {
         require(_newPrice > 0, "Price must be > 0");
         ethPrice = _newPrice;
         emit PriceUpdated(_newPrice);
+    }
+
+    /**
+     * @dev Update interest rate model parameters.
+     * @param _baseRatePerSecond New base rate per second (1e18 scale).
+     * @param _multiplierPerSecond New multiplier per second (1e18 scale).
+     */
+    function setInterestParameters(uint256 _baseRatePerSecond, uint256 _multiplierPerSecond) external onlyOwner {
+        accrueInterest(); // Accrue with old rates first
+        BASE_RATE_PER_SECOND = _baseRatePerSecond;
+        MULTIPLIER_PER_SECOND = _multiplierPerSecond;
+        emit InterestParamsUpdated(_baseRatePerSecond, _multiplierPerSecond);
     }
 
     // Function to fund the contract with lending tokens (for testing purposes)
