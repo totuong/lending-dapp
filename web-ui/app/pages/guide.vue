@@ -37,6 +37,14 @@ const translations = {
             withdraw: {
                 title: "Withdraw",
                 desc: "Withdraw your supplied assets back to your wallet. You can only withdraw if you have enough excess collateral."
+            },
+            netWorth: {
+                title: "Net Worth",
+                desc: "The total value of your assets minus the value of your debts, calculated in ETH."
+            },
+            poolLiquidity: {
+                title: "Pool Liquidity",
+                desc: "The total amount of ETH available in the lending pool for borrowing. (Admin Only view)"
             }
         },
         health: {
@@ -80,6 +88,14 @@ const translations = {
             withdraw: {
                 title: "Rút tiền (Withdraw)",
                 desc: "Rút tài sản đã gửi về ví của bạn. Bạn chỉ có thể rút nếu bạn có đủ tài sản thế chấp dư thừa."
+            },
+            netWorth: {
+                title: "Tài sản ròng (Net Worth)",
+                desc: "Tổng giá trị tài sản của bạn trừ đi giá trị nợ, được tính bằng ETH."
+            },
+            poolLiquidity: {
+                title: "Thanh khoản Pool (Pool Liquidity)",
+                desc: "Tổng số lượng ETH có sẵn trong pool cho vay. (Chỉ Admin mới thấy)"
             }
         },
         health: {
@@ -158,8 +174,7 @@ const t = computed(() => translations[lang.value]);
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
-                                <Icon icon="mdi:bank-transfer-in" class="text-green-500" /> {{ t.dashboard.supply.title
-                                }}
+                                <Icon icon="mdi:bank-transfer-in" class="text-green-500" /> {{ t.dashboard.supply.title }}
                             </h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400">{{ t.dashboard.supply.desc }}</p>
                         </div>
@@ -181,7 +196,18 @@ const t = computed(() => translations[lang.value]);
                             </h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400">{{ t.dashboard.repay.desc }}</p>
                         </div>
-
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
+                                <Icon icon="mdi:finance" class="text-blue-500" /> {{ t.dashboard.netWorth.title }}
+                            </h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t.dashboard.netWorth.desc }}</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
+                                <Icon icon="mdi:water" class="text-cyan-500" /> {{ t.dashboard.poolLiquidity.title }}
+                            </h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">{{ t.dashboard.poolLiquidity.desc }}</p>
+                        </div>
                     </div>
                 </section>
 
