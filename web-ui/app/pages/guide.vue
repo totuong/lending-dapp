@@ -55,6 +55,13 @@ const translations = {
             risky: "<strong>1.0 < Health Factor < 1.5</strong>: Risky. You should repay some debt or supply more collateral.",
             danger: "<strong>Health Factor < 1.0</strong>: DANGER. Your collateral can be liquidated (seized) to repay your debt.",
             monitor: "You can monitor your Health Factor in the <strong>My Assets</strong> page."
+        },
+        interest: {
+            title: "Interest Rate Mechanics",
+            desc: "Our protocol uses a <strong>Linear Interest Rate Model</strong>. Rates adjust automatically based on supply and demand.",
+            borrow: "<strong>Borrow APY</strong>: Increases as more funds are borrowed (High Utilization). Base Rate 5% + up to 20% based on demand.",
+            supply: "<strong>Supply APY</strong>: Earned from interest paid by borrowers. Higher Borrow APY + Higher Utilization = Higher Earnings.",
+            accrual: "<strong>Real-time Accrual</strong>: Interest is calculated every second and added to your balance whenever you interact with the pool."
         }
     },
     vi: {
@@ -106,6 +113,13 @@ const translations = {
             risky: "<strong class='text-yellow-500'>1.0 < Health Factor < 1.5</strong>: Rủi ro. Bạn nên trả bớt nợ hoặc nạp thêm tài sản thế chấp.",
             danger: "<strong class='text-red-500'>Health Factor < 1.0</strong>: NGUY HIỂM. Tài sản thế chấp của bạn có thể bị thanh lý (tịch thu) để trả nợ.",
             monitor: "Bạn có thể theo dõi Health Factor tại trang <strong>My Assets</strong>."
+        },
+        interest: {
+            title: "Cơ chế Lãi suất",
+            desc: "Giao thức sử dụng <strong>Mô hình Lãi suất Tuyến tính</strong>. Lãi suất tự động điều chỉnh dựa trên cung và cầu.",
+            borrow: "<strong>Lãi suất Vay (APY)</strong>: Tăng lên khi nhu cầu vay tăng cao. Lãi suất cơ bản 5% + tối đa 20% tùy theo nhu cầu.",
+            supply: "<strong>Lãi suất Gửi (APY)</strong>: Được trả từ tiền lãi của người vay. Lãi vay cao + Nhu cầu cao = Lợi nhuận cao.",
+            accrual: "<strong>Tính lãi Thời gian thực</strong>: Lãi suất được tính mỗi giây và cộng vào số dư mỗi khi bạn tương tác với pool."
         }
     }
 };
@@ -158,7 +172,7 @@ const t = computed(() => translations[lang.value]);
 
                         <div class=" p-4 rounded-xl border border-gray-100 dark:border-gray-700/50 mt-2">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ t.gettingStarted.funds.title
-                                }}</h3>
+                            }}</h3>
                             <p class="mt-1 text-sm">{{ t.gettingStarted.funds.desc }}</p>
                         </div>
                     </div>
@@ -174,7 +188,8 @@ const t = computed(() => translations[lang.value]);
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
-                                <Icon icon="mdi:bank-transfer-in" class="text-green-500" /> {{ t.dashboard.supply.title }}
+                                <Icon icon="mdi:bank-transfer-in" class="text-green-500" /> {{ t.dashboard.supply.title
+                                }}
                             </h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400">{{ t.dashboard.supply.desc }}</p>
                         </div>
@@ -235,6 +250,33 @@ const t = computed(() => translations[lang.value]);
                         </ul>
 
                         <p class="mt-4" v-html="t.health.monitor" />
+                    </div>
+                </section>
+
+                <!-- Section 4: Interest Rates -->
+                <section
+                    class="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm dark:shadow-none">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3 text-purple-600 dark:text-purple-400">
+                        <Icon icon="mdi:chart-bell-curve-cumulative" class="w-8 h-8" />
+                        {{ t.interest.title }}
+                    </h2>
+                    <div class="space-y-4 text-gray-600 dark:text-gray-300">
+                        <p v-html="t.interest.desc" />
+
+                        <div class="grid md:grid-cols-2 gap-4 mt-4">
+                            <div
+                                class="p-4 bg-purple-50 dark:bg-purple-500/10 border border-purple-100 dark:border-purple-500/30 rounded-xl">
+                                <p class="text-sm" v-html="t.interest.supply" />
+                            </div>
+                            <div
+                                class="p-4 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/30 rounded-xl">
+                                <p class="text-sm" v-html="t.interest.borrow" />
+                            </div>
+                        </div>
+
+                        <p class="text-sm text-gray-500 flex items-center gap-2 mt-2">
+                            <Icon icon="mdi:clock-fast" /> <span v-html="t.interest.accrual" />
+                        </p>
                     </div>
                 </section>
 

@@ -253,9 +253,9 @@ const handleWithdraw = async () => {
 const handleUpdatePrice = async () => {
   if (!newEthPrice.value || !signer.value) return;
   isUpdatingPrice.value = true;
-  
+
   const res = await lendingService.updateETHPrice(signer.value, String(newEthPrice.value));
-  
+
   isUpdatingPrice.value = false;
   if (res.success) {
     toast.add({ severity: 'success', summary: 'Price Updated', detail: 'ETH Price updated successfully', life: 3000 });
@@ -513,7 +513,7 @@ const openDetails = (asset: any) => {
               <InputNumber v-model="borrowAmount" placeholder="0.00" mode="decimal" :minFractionDigits="2" fluid
                 class="w-full"
                 inputClass="w-full bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600 rounded-lg py-3 px-4 text-gray-900 dark:text-white focus:outline-none focus:border-purple-500 transition-colors" />
-              <span class="absolute right-4 top-3 text-gray-500">TOK</span>
+              <span class="absolute right-4 top-3 text-gray-500">MOK</span>
             </div>
 
             <div v-if="!isRepayMode">
