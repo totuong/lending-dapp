@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useWeb3 } from '../composables/useWeb3';
+import { useLanguage } from '../composables/useLanguage';
 
+const { t } = useLanguage();
 const { disconnect, isConnected, connectWallet } = useWeb3();
 
 const props = defineProps<{
@@ -25,13 +27,13 @@ const healthPercentage = computed(() => {
   <div class="flex justify-between items-center mb-8">
     <h1
       class="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
-      Dashboard
+      {{ t.sidebar.dashboard }}
     </h1>
     <!-- Health Factor -->
     <div class="hidden md:flex items-center gap-6">
       <div class="w-64">
         <div class="flex justify-between text-sm mb-1">
-          <span class="text-gray-500 dark:text-gray-400">Health Factor</span>
+          <span class="text-gray-500 dark:text-gray-400">{{ t.ui.common.healthFactor }}</span>
           <span
             :class="props.healthFactor >= 1.5 ? 'text-green-500 dark:text-green-400' : 'text-yellow-500 dark:text-yellow-400'"
             class="font-bold">{{ props.healthFactor }}</span>
@@ -46,8 +48,8 @@ const healthPercentage = computed(() => {
       <div class="flex items-center gap-3 border-l pl-6 border-gray-200 dark:border-gray-700">
         <Button v-if="isConnected" @click="disconnect" icon="pi pi-sign-out"
           class="!text-red-400 hover:!text-red-500 !bg-red-50 dark:!bg-red-500/10 border-none !h-10 !w-10 !rounded-full"
-          v-tooltip.bottom="'Disconnect'" />
-        <Button v-else @click="connectWallet" label="Connect" icon="pi pi-wallet"
+          v-tooltip.bottom="t.ui.common.disconnect" />
+        <Button v-else @click="connectWallet" :label="t.ui.common.connect" icon="pi pi-wallet"
           class="!bg-blue-600 !text-white !border-none !rounded-lg" />
       </div>
     </div>

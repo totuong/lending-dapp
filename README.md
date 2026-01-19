@@ -125,6 +125,22 @@ Run the user interface.
 *   **Liquidation**: Visual indicator for undercollateralized positions (Health Factor < 1.0).
 *   **Withdraw**: Withdraw supplied assets when they are not locked as collateral.
 
+## Interest Rate Model
+
+The protocol uses a **Linear Interest Rate Model** to dynamically adjust rates based on pool utilization.
+
+*   **Utilization Rate ($U$)**: Calculated as `Total Borrows / Total Supply`.
+    *   $U = 0\%$: Low demand, low rates.
+    *   $U = 100\%$: High demand, high rates.
+*   **Borrow APY**: Increases linearly with utilization.
+    *   Formula: $Rate = Base + (Multiplier \times U)$
+    *   Base Rate: ~5% APY
+    *   Multiplier: ~20% (at 100% utilization, rate is ~25%)
+*   **Supply APY**: Derived from Borrow APY and Utilization.
+    *   Formula: $Supply Rate = Borrow Rate \times U$
+    *   Suppliers earn a share of the interest paid by borrowers. As utilization rises, Supply APY increases.
+*   **Accrual**: Interest accrues every second and is compounded whenever a user interacts with the pool (deposit, borrow, repay, etc.).
+
 ## Development Accounts (Hardhat Localhost)
 
 These accounts are pre-funded with 10,000 ETH on the local network (ChainID: 1337/31337).
