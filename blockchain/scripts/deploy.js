@@ -32,6 +32,16 @@ async function main() {
     console.log("MOCK_TOKEN_ADDRESS:", mockTokenAddress);
     console.log("=================================================");
 
+    // --- SAVE DEPLOYED ADDRESSES ---
+    const addressesFile = path.join(__dirname, "../deployed_addresses.json");
+    const addresses = {
+        mockToken: mockTokenAddress,
+        lendingPool: lendingPoolAddress
+    };
+
+    fs.writeFileSync(addressesFile, JSON.stringify(addresses, null, 2));
+    console.log(`Saved deployed addresses to ${addressesFile}`);
+
     // --- TỰ ĐỘNG CẬP NHẬT ABI CHO FRONTEND ---
     // Lưu ý: Kiểm tra đường dẫn này có đúng với cấu trúc thư mục của bạn không
     const frontendAbiDir = path.join(__dirname, "../../web-ui/utils/abis");
