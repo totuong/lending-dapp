@@ -185,11 +185,11 @@ export const useLanguage = () => {
             dashboard: {
                 title: "Tính năng Dashboard",
                 supply: {
-                    title: "Gửi Tài sản (Supply)",
+                    title: "Gửi tài sản (Supply)",
                     desc: "Gửi ETH của bạn vào giao thức. Điều này làm tăng \"Tổng cung\" (Total Supply) và \"Tài sản ròng\" (Net Worth). Tài sản đã gửi có thể dùng làm thế chấp để vay token khác."
                 },
                 borrow: {
-                    title: "Vay Tài sản (Borrow)",
+                    title: "Vay tài sản (Borrow)",
                     desc: "Vay Mock Tokens (TOK) bằng cách thế chấp ETH đã gửi. Hãy cẩn thận đừng vay quá nhiều để tránh rủi ro bị thanh lý tài sản."
                 },
                 repay: {
@@ -213,8 +213,8 @@ export const useLanguage = () => {
                 title: "Hệ số Sức khỏe & Rủi ro",
                 concept: "Khái niệm Quan trọng",
                 conceptDesc: "<strong>Health Factor</strong> thể hiện độ an toàn khoản vay của bạn. Nó được tính toán dựa trên Tỉ lệ Tài sản thế chấp so với Số tiền vay.",
-                safe: "<strong class='text-green-500'>Health Factor > 1.5</strong>: An toàn. Rủi ro thanh lý thấp.",
-                risky: "<strong class='text-yellow-500'>1.0 < Health Factor < 1.5</strong>: Rủi ro. Bạn nên trả bớt nợ hoặc nạp thêm tài sản thế chấp.",
+                safe: "<strong class='text-green-500'>Health Factor >= 1.5</strong>: An toàn. Rủi ro thanh lý thấp.",
+                risky: "<strong class='text-yellow-500'>1.0 <= Health Factor < 1.5</strong>: Rủi ro. Bạn nên trả bớt nợ hoặc nạp thêm tài sản thế chấp.",
                 danger: "<strong class='text-red-500'>Health Factor < 1.0</strong>: NGUY HIỂM. Tài sản thế chấp của bạn có thể bị thanh lý (tịch thu) để trả nợ.",
                 monitor: "Bạn có thể theo dõi Health Factor tại trang <strong>My Assets</strong>."
             },

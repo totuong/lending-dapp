@@ -19,71 +19,50 @@ A decentralized lending application connecting lenders and borrowers using Ether
 Run a local blockchain node and deploy contracts.
 
 1.  Open a terminal and navigate to the `blockchain` folder:
-    ```bash
     cd blockchain
-    ```
 
 2.  Install dependencies:
-    ```bash
     npm install
-    ```
-
 3.  Start the local Hardhat node (keep this terminal running):
-    ```bash
     npx hardhat node
-    ```
 
 4.  Open a **new** terminal window and deploy the contracts:
-    ```bash
     cd blockchain
     npm run deploy
-    ```
     *Note: Copy the `LendingPool` contract address printed in the console.*
 
 ### Option 2: Deploy & Seed Data (Recommended for Dev)
 
 To start with a pre-populated environment (contracts deployed + user deposits/loans):
-```bash
 cd blockchain
 # Runs the seed script (deploys contracts + seeds data)
 npm run seed -- --network localhost
-```
 *Use the addresses printed by this script in your frontend.*
 
 ### Quickstart (Combined)
 To deploy and seed (running both scripts sequentially):
-```bash
 cd blockchain
 npm run deploy-full
-```
 
 ### 2. Web UI Setup (Frontend)
 
 Run the user interface.
 
 1.  Navigate to the `web-ui` folder:
-    ```bash
     cd web-ui
-    ```
 
 2.  Install dependencies:
-    ```bash
     npm install
-    ```
 
 3.  Configure the environment:
     *   The project uses `web-ui/.env`.
     *   Ensure `VITE_CONTRACT_ADDRESS` matches your deployed address.
     *   Example `.env`:
-        ```properties
         VITE_CONTRACT_ADDRESS=0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
         VITE_CHAIN_ID=1337
-        ```
 
 4.  Start the development server:
-    ```bash
     npm run dev
-    ```
 
 5.  Open your browser at `http://localhost:3000`.
 

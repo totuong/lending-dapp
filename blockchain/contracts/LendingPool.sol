@@ -266,25 +266,40 @@ contract LendingPool is ReentrancyGuard, Ownable {
 
         require(totalDebt > maxBorrow, "Health Factor is >= 1");
 
-        // Calculate collateral to seize: (Debt / Price) + 10% bonus
+        // Calculate theoretical collateral needed for full repayment
+        // Logic: (Debt / Price) * 1.1
         uint256 baseCollateralETH = totalDebt / ethPrice;
         uint256 bonusETH = (baseCollateralETH * 10) / 100;
-        uint256 totalCollateralToSeize = baseCollateralETH + bonusETH;
+        uint256 neededCollateral = baseCollateralETH + bonusETH;
+
+        uint256 amountToRepay = totalDebt;
+        uint256 totalCollateralToSeize = neededCollateral;
+
+        // If user is insolvent (collateral < needed), liquidate as much as possible
+        if (deposits[user] < neededCollateral) {
+            totalCollateralToSeize = deposits[user];
+            // Calculate max repayable debt with available collateral
+            // Formula: Repay = (Collateral * Price) / 1.1
+            // Refined to match integer math: 
+            // baseCollateral = Collateral * 100 / 110
+            uint256 maxBaseCollateral = (totalCollateralToSeize * 100) / 110;
+            amountToRepay = maxBaseCollateral * ethPrice;
+        }
+
+        require(amountToRepay > 0, "Collateral too small to liquidate");
 
         require(
-            deposits[user] >= totalCollateralToSeize,
-            "Insufficient collateral to seize"
-        );
-
-        require(
-            lendingToken.transferFrom(msg.sender, address(this), totalDebt),
+            lendingToken.transferFrom(msg.sender, address(this), amountToRepay),
             "Token transfer failed"
         );
 
-        loans[user] = 0;
-        // Global borrows logic: Debt is repaid by liquidator
-        if(totalBorrowsGlobal >= totalDebt) {
-            totalBorrowsGlobal -= totalDebt;
+        loans[user] -= amountToRepay;
+        
+        // Global borrows logic
+        if(totalBorrowsGlobal >= amountToRepay) {
+            totalBorrowsGlobal -= amountToRepay;
+        } else {
+            totalBorrowsGlobal = 0;
         }
 
         deposits[user] -= totalCollateralToSeize;

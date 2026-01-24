@@ -262,7 +262,7 @@ watch(isConnected, (newVal) => {
                                     </span>
                                 </td>
                                 <td class="p-4 text-right">
-                                    <button v-if="parseFloat(user.healthFactor) < 1.1"
+                                    <button v-if="parseFloat(user.healthFactor) < 1.0"
                                         @click="handleLiquidate(user.address)" :disabled="processingMap[user.address]"
                                         class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
                                         <span v-if="processingMap[user.address]" class="flex items-center gap-2">
